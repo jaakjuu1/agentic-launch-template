@@ -10,7 +10,7 @@ This repository is meant to be **referenced and reused**, not admired from a dis
 - An Expo product app with launch-ready screens, deep-link configuration, and entitlement surfaces
 - A Next.js web app for marketing, docs, pricing, and an operator/admin console
 - Shared domain contracts, analytics events, billing logic, design tokens, and UI primitives
-- A Convex backend prepared for auth, approvals, workflows, webhooks, and durable agent state
+- A Convex backend prepared for auth, approvals, workflows, webhooks, durable agent state, and Cloudflare R2-backed private files
 
 ## First setup steps
 
@@ -19,9 +19,11 @@ This repository is meant to be **referenced and reused**, not admired from a dis
 3. Link or start Convex with `corepack pnpm --filter @launch/convex dev`.
 4. Refresh generated backend types with `corepack pnpm codegen`.
 5. Run `corepack pnpm dev` to start the monorepo.
+6. Configure the R2 bucket CORS rules for your product and operator origins before testing uploads on the web.
 
 ## What to customize first
 
 - Replace the reference domain copy with your product language.
 - Swap the sample analytics and billing catalog with your actual pricing model.
 - Extend the Convex functions and agent tools before exposing any risky side effects.
+- Update the storage policies, R2 bucket names, and file quotas before shipping a public beta.

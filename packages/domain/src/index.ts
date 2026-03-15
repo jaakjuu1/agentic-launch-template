@@ -47,7 +47,44 @@ export const entitlementSourceSchema = z.enum([
   "admin",
 ]);
 export const entitlementTierSchema = z.enum(["free", "pro", "lifetime"]);
+export type EntitlementTier = z.infer<typeof entitlementTierSchema>;
 export const supportStatusSchema = z.enum(["open", "triaged", "resolved"]);
+
+export const fileStatusSchema = z.enum([
+  "pending_upload",
+  "uploaded",
+  "processing",
+  "ready",
+  "failed",
+  "deleted",
+]);
+export const filePurposeSchema = z.enum([
+  "project_attachment",
+  "artifact_export",
+  "assistant_attachment",
+  "support_attachment",
+  "generated_output",
+  "knowledge_base",
+]);
+export const fileOriginSchema = z.enum([
+  "user_upload",
+  "agent_generated",
+  "operator_upload",
+  "system_generated",
+]);
+export const fileVisibilitySchema = z.enum(["private"]);
+export const fileTargetTypeSchema = z.enum([
+  "project",
+  "artifact",
+  "agent_message",
+  "support_request",
+]);
+export const fileAttachmentRoleSchema = z.enum([
+  "primary",
+  "source",
+  "reference",
+]);
+export const uploadStrategySchema = z.enum(["single"]);
 
 export const profileSchema = z.object({
   id: entityId,
@@ -101,11 +138,44 @@ export const artifactSchema = z.object({
   kind: z.enum(["plan", "brief", "draft", "image", "report"]),
   status: artifactStatusSchema.default("queued"),
   body: z.string().default(""),
-  storageUrl: z.string().url().optional(),
   createdAt: isoDateString,
   updatedAt: isoDateString,
 });
 export type Artifact = z.infer<typeof artifactSchema>;
+
+export const storedFileSchema = z.object({
+  id: entityId,
+  profileId: entityId,
+  bucket: z.string().min(1),
+  fileName: z.string().min(1).max(180),
+  mimeType: z.string().min(3),
+  objectKey: z.string().min(3),
+  origin: fileOriginSchema,
+  purpose: filePurposeSchema,
+  status: fileStatusSchema.default("pending_upload"),
+  uploadStrategy: uploadStrategySchema.default("single"),
+  visibility: fileVisibilitySchema.default("private"),
+  sizeBytes: z.number().int().min(0),
+  etag: z.string().optional(),
+  lastError: z.string().optional(),
+  uploadedAt: isoDateString.optional(),
+  readyAt: isoDateString.optional(),
+  deletedAt: isoDateString.optional(),
+  createdAt: isoDateString,
+  updatedAt: isoDateString,
+});
+export type StoredFile = z.infer<typeof storedFileSchema>;
+
+export const fileAttachmentSchema = z.object({
+  id: entityId,
+  fileId: entityId,
+  profileId: entityId,
+  role: fileAttachmentRoleSchema.default("reference"),
+  targetId: entityId,
+  targetType: fileTargetTypeSchema,
+  createdAt: isoDateString,
+});
+export type FileAttachment = z.infer<typeof fileAttachmentSchema>;
 
 export const agentThreadSchema = z.object({
   id: entityId,
@@ -170,6 +240,8 @@ export const workflowRunSchema = z.object({
     "weekly_digest",
     "support_follow_up",
     "billing_sync",
+    "file_processing",
+    "file_cleanup",
   ]),
   status: workflowStatusSchema.default("queued"),
   trigger: z.enum(["user", "schedule", "webhook", "operator"]).default("user"),
@@ -221,6 +293,11 @@ export const analyticsEventNameSchema = z.enum([
   "approval_decided",
   "notification_opened",
   "support_requested",
+  "file_upload_started",
+  "file_upload_completed",
+  "file_upload_failed",
+  "file_download_requested",
+  "file_deleted",
 ]);
 
 export const analyticsEventSchema = z.object({
@@ -244,43 +321,64 @@ export const supportRequestSchema = z.object({
 export type SupportRequest = z.infer<typeof supportRequestSchema>;
 
 export const seedPreview = {
-  profile: {
-    id: "profile_demo",
-    clerkUserId: "user_demo",
-    role: "consumer",
-    firstName: "June",
-    email: "june@example.com",
-    timezone: "Europe/Helsinki",
-    locale: "en-US",
-    marketingConsent: true,
-    analyticsConsent: true,
+  file: {
+    bucket: "launch-private-dev",
     createdAt: "2026-03-15T10:00:00.000Z",
-    updatedAt: "2026-03-15T10:00:00.000Z",
-  } satisfies Profile,
-  goal: {
-    id: "goal_demo",
+    fileName: "launch-brief.pdf",
+    id: "file_demo",
+    mimeType: "application/pdf",
+    objectKey:
+      "profiles/profile_demo/project_attachment/2026/03/file_demo/launch-brief.pdf",
+    origin: "user_upload",
     profileId: "profile_demo",
-    title: "Ship the productivity companion",
+    purpose: "project_attachment",
+    readyAt: "2026-03-15T10:02:00.000Z",
+    sizeBytes: 48213,
+    status: "ready",
+    updatedAt: "2026-03-15T10:02:00.000Z",
+    uploadedAt: "2026-03-15T10:01:00.000Z",
+    uploadStrategy: "single",
+    visibility: "private",
+  } satisfies StoredFile,
+  goal: {
+    createdAt: "2026-03-15T10:00:00.000Z",
     description:
       "Launch the first polished agentic release across web and mobile.",
-    status: "active",
+    id: "goal_demo",
     priority: "high",
-    createdAt: "2026-03-15T10:00:00.000Z",
+    profileId: "profile_demo",
+    status: "active",
+    title: "Ship the productivity companion",
     updatedAt: "2026-03-15T10:00:00.000Z",
   } satisfies Goal,
+  profile: {
+    analyticsConsent: true,
+    clerkUserId: "user_demo",
+    createdAt: "2026-03-15T10:00:00.000Z",
+    email: "june@example.com",
+    firstName: "June",
+    id: "profile_demo",
+    locale: "en-US",
+    marketingConsent: true,
+    role: "consumer",
+    timezone: "Europe/Helsinki",
+    updatedAt: "2026-03-15T10:00:00.000Z",
+  } satisfies Profile,
 };
 
 export const domainSchemas = {
+  agentMessageSchema,
+  agentThreadSchema,
   analyticsEventSchema,
   approvalSchema,
   artifactSchema,
-  agentMessageSchema,
-  agentThreadSchema,
   entitlementSchema,
+  fileAttachmentSchema,
   goalSchema,
   notificationSchema,
   profileSchema,
   projectSchema,
+  storedFileSchema,
   supportRequestSchema,
   toolRunSchema,
   workflowRunSchema,

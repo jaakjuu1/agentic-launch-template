@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
 import { ensureDemoRecords } from "./lib/demo";
+import { hydrateArtifactsWithFiles } from "./lib/storage";
 
 export const bootstrapViewer = mutation({
   args: {},
@@ -71,6 +72,13 @@ export const dashboard = query({
           .collect(),
       ]);
 
-    return { approvals, artifacts, goals, notifications, profile, projects };
+    return {
+      approvals,
+      artifacts: await hydrateArtifactsWithFiles(ctx.db, artifacts),
+      goals,
+      notifications,
+      profile,
+      projects,
+    };
   },
 });

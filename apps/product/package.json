@@ -29,6 +29,8 @@
     "convex": "latest",
     "expo": "latest",
     "expo-constants": "latest",
+    "expo-document-picker": "latest",
+    "expo-image-picker": "latest",
     "expo-linking": "latest",
     "expo-notifications": "latest",
     "expo-router": "latest",

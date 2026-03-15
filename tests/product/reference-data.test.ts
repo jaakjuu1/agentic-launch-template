@@ -12,6 +12,7 @@ describe("product reference data", () => {
   it("ships seeded dashboard content for the launch template", () => {
     expect(referenceProjects).toHaveLength(3);
     expect(referenceThread.messages).toHaveLength(3);
+    expect(referenceThread.attachments).toHaveLength(1);
     expect(referenceNotifications[0]?.title).toBe("Artifact ready");
   });
 

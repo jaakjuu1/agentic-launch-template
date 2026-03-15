@@ -13,6 +13,8 @@ export const createWorkflowRecord = internalMutation({
       v.literal("weekly_digest"),
       v.literal("support_follow_up"),
       v.literal("billing_sync"),
+      v.literal("file_processing"),
+      v.literal("file_cleanup"),
     ),
     profileId: v.id("profiles"),
     projectId: v.optional(v.id("projects")),
@@ -73,13 +75,27 @@ export const runArtifactWorkflow = internalAction({
       workflowRunId: args.workflowRunId,
     });
 
-    await ctx.runMutation(internal.artifacts.createGeneratedArtifact, {
-      body: `Generated from workflow prompt: ${args.prompt}`,
-      kind: "brief",
+    const artifactBody = `Generated from workflow prompt: ${args.prompt}`;
+    const artifactId = await ctx.runMutation(
+      internal.artifacts.createGeneratedArtifact,
+      {
+        body: artifactBody,
+        kind: "brief",
+        profileId: args.profileId,
+        projectId: args.projectId,
+        title: args.title,
+        workflowRunId: args.workflowRunId,
+      },
+    );
+
+    await ctx.runAction(internal.storageNode.putGeneratedFile, {
+      fileName: `${args.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.md`,
+      mimeType: "text/markdown",
       profileId: args.profileId,
-      projectId: args.projectId,
-      title: args.title,
-      workflowRunId: args.workflowRunId,
+      purpose: "artifact_export",
+      targetId: artifactId,
+      targetType: "artifact",
+      textContent: artifactBody,
     });
 
     await ctx.runMutation(internal.notifications.enqueueNotification, {
@@ -125,7 +141,7 @@ export const scheduleWeeklyDigest = action({
       0,
       internal.notifications.enqueueNotification,
       {
-        body: "Weekly digest scheduled. In production this would compile goals, artifacts, and billing state.",
+        body: "Weekly digest scheduled. In production this would compile goals, artifacts, billing state, and recent file activity.",
         channel: "push",
         deepLink: "/notifications",
         profileId: profile._id,

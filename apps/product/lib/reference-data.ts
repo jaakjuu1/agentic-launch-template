@@ -8,6 +8,14 @@ export const dashboardStats = [
   { label: "Pending approvals", value: "1" },
 ] as const;
 
+export type ReferenceLaunchFile = {
+  detail: string;
+  fileName: string;
+  id: string;
+  sizeBytes: number;
+  status: string;
+};
+
 export const referenceProjects = [
   {
     id: "project_launch",
@@ -36,6 +44,15 @@ export const referenceThread = {
   id: "thread_demo",
   title: "Weekly artifact planner",
   summary: "Persistent assistant thread with background workflow state.",
+  attachments: [
+    {
+      detail: "PDF, private, ready for retrieval",
+      fileName: seedPreview.file.fileName,
+      id: seedPreview.file.id,
+      sizeBytes: seedPreview.file.sizeBytes,
+      status: "Ready",
+    },
+  ] satisfies ReferenceLaunchFile[],
   messages: [
     {
       id: "message_1",
@@ -57,6 +74,43 @@ export const referenceThread = {
     },
   ],
 };
+
+export const referenceProjectFiles = [
+  {
+    detail: "Project attachment · PDF · private",
+    fileName: "launch-brief.pdf",
+    id: "file_project_1",
+    sizeBytes: 48213,
+    status: "Ready",
+  },
+  {
+    detail: "Generated export · Markdown · vector indexed",
+    fileName: "retention-workflows.md",
+    id: "file_project_2",
+    sizeBytes: 14280,
+    status: "Indexed",
+  },
+] satisfies ReferenceLaunchFile[];
+
+export const referenceSupportFiles = [
+  {
+    detail: "Support attachment · PNG screenshot",
+    fileName: "billing-mismatch.png",
+    id: "file_support_1",
+    sizeBytes: 318002,
+    status: "Ready",
+  },
+] satisfies ReferenceLaunchFile[];
+
+export const referenceArtifactExports = [
+  {
+    detail: "Artifact export · Markdown",
+    fileName: "mobile-launch-brief.md",
+    id: "file_artifact_1",
+    sizeBytes: 9213,
+    status: "Ready",
+  },
+] satisfies ReferenceLaunchFile[];
 
 export const referenceNotifications = [
   {

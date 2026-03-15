@@ -31,6 +31,7 @@ export async function getMarketingData() {
   const pillars = Promise.resolve([
     "Expo product app with release-ready settings, deep links, and restore flows",
     "Convex-first backend with durable workflows, auth boundaries, and webhook plumbing",
+    "Cloudflare R2 private storage with signed uploads, generated exports, and retrieval hooks",
     "AI SDK UI layer plus Convex Agent persistence and optional OpenAI orchestration",
   ]);
 

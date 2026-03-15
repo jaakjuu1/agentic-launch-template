@@ -13,6 +13,33 @@ const publicBoolean = z
   .optional()
   .transform((value) => value === "true");
 
+const optionalInteger = z
+  .union([z.number(), z.string()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value === "") {
+      return undefined;
+    }
+
+    const parsed =
+      typeof value === "number" ? value : Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  });
+
+const optionalOrigins = z
+  .string()
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value.trim() === "") {
+      return [];
+    }
+
+    return value
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0);
+  });
+
 export const productEnvSchema = z.object({
   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
   EXPO_PUBLIC_CONVEX_URL: z.string().url().optional(),
@@ -37,13 +64,21 @@ export const webEnvSchema = z.object({
 export const convexEnvSchema = z.object({
   CLERK_JWT_ISSUER_DOMAIN: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  POSTHOG_PROJECT_API_KEY: z.string().optional(),
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_ALLOWED_WEB_ORIGINS: z.array(z.string().url()).optional(),
+  R2_DOWNLOAD_URL_TTL_SECONDS: z.number().int().positive().optional(),
+  R2_MAX_UPLOAD_BYTES: z.number().int().positive().optional(),
+  R2_PRIVATE_BUCKET: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_UPLOAD_URL_TTL_SECONDS: z.number().int().positive().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  REVENUECAT_WEBHOOK_SECRET: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  REVENUECAT_WEBHOOK_SECRET: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
-  RESEND_API_KEY: z.string().optional(),
-  POSTHOG_PROJECT_API_KEY: z.string().optional(),
-  SENTRY_DSN: z.string().optional(),
 });
 
 export function parseProductEnv(env: Record<string, string | undefined>) {
@@ -87,6 +122,18 @@ export function parseConvexEnv(env: Record<string, string | undefined>) {
     CLERK_WEBHOOK_SECRET: emptyToUndefined(env.CLERK_WEBHOOK_SECRET),
     OPENAI_API_KEY: emptyToUndefined(env.OPENAI_API_KEY),
     POSTHOG_PROJECT_API_KEY: emptyToUndefined(env.POSTHOG_PROJECT_API_KEY),
+    R2_ACCOUNT_ID: emptyToUndefined(env.R2_ACCOUNT_ID),
+    R2_ACCESS_KEY_ID: emptyToUndefined(env.R2_ACCESS_KEY_ID),
+    R2_ALLOWED_WEB_ORIGINS: optionalOrigins.parse(env.R2_ALLOWED_WEB_ORIGINS),
+    R2_DOWNLOAD_URL_TTL_SECONDS: optionalInteger.parse(
+      env.R2_DOWNLOAD_URL_TTL_SECONDS,
+    ),
+    R2_MAX_UPLOAD_BYTES: optionalInteger.parse(env.R2_MAX_UPLOAD_BYTES),
+    R2_PRIVATE_BUCKET: emptyToUndefined(env.R2_PRIVATE_BUCKET),
+    R2_SECRET_ACCESS_KEY: emptyToUndefined(env.R2_SECRET_ACCESS_KEY),
+    R2_UPLOAD_URL_TTL_SECONDS: optionalInteger.parse(
+      env.R2_UPLOAD_URL_TTL_SECONDS,
+    ),
     RESEND_API_KEY: emptyToUndefined(env.RESEND_API_KEY),
     REVENUECAT_WEBHOOK_SECRET: emptyToUndefined(env.REVENUECAT_WEBHOOK_SECRET),
     SENTRY_DSN: emptyToUndefined(env.SENTRY_DSN),

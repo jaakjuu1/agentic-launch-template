@@ -150,18 +150,43 @@ export const listThreadUiMessages = query({
 
 export const sendPrompt = action({
   args: {
+    attachmentFileIds: v.optional(v.array(v.id("files"))),
     prompt: v.string(),
     threadId: v.string(),
   },
   handler: async (ctx, args): Promise<{ text: string; usage: unknown }> => {
     const viewer = await getViewerIdentity(ctx);
+    const attachmentContext =
+      args.attachmentFileIds && args.attachmentFileIds.length > 0
+        ? await ctx.runQuery(internal.storage.resolvePromptAttachments, {
+            attachmentFileIds: args.attachmentFileIds,
+            clerkUserId: viewer.clerkUserId,
+            role: viewer.role,
+          })
+        : [];
     const { thread } = await productivityAgent.continueThread(ctx, {
       threadId: args.threadId,
       userId: viewer.clerkUserId,
     });
 
     const result = await thread.generateText({
-      prompt: args.prompt,
+      prompt:
+        attachmentContext.length === 0
+          ? args.prompt
+          : `Attached file context:\n${attachmentContext
+              .map(
+                (attachment: {
+                  fileName: string;
+                  mimeType: string;
+                  snippet: string;
+                }) =>
+                  `- ${attachment.fileName} (${attachment.mimeType})${
+                    attachment.snippet.length > 0
+                      ? `\n${attachment.snippet}`
+                      : ""
+                  }`,
+              )
+              .join("\n\n")}\n\nUser prompt:\n${args.prompt}`,
     });
 
     return {

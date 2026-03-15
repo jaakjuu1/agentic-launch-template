@@ -14,6 +14,11 @@ const eventDescriptions = {
   checkout_started: "A user moved from paywall to checkout.",
   entitlement_activated:
     "A subscription or lifetime entitlement became active.",
+  file_deleted: "A stored file was deleted or tombstoned.",
+  file_download_requested: "A signed download URL was requested.",
+  file_upload_completed: "A file upload completed and became durable state.",
+  file_upload_failed: "A file upload or processing step failed.",
+  file_upload_started: "A file upload was initialized for a signed PUT.",
   goal_created: "A new goal was created in the companion.",
   notification_opened: "A user opened a notification or deep link.",
   paywall_viewed: "The premium upsell surface was shown.",

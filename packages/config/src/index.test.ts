@@ -34,11 +34,21 @@ describe("config parsers", () => {
     const parsed = parseConvexEnv({
       OPENAI_API_KEY: "",
       POSTHOG_PROJECT_API_KEY: "",
+      R2_ALLOWED_WEB_ORIGINS:
+        "https://app.example.com, https://operator.example.com",
+      R2_DOWNLOAD_URL_TTL_SECONDS: "300",
+      R2_MAX_UPLOAD_BYTES: "104857600",
       STRIPE_SECRET_KEY: "",
     });
 
     expect(parsed.OPENAI_API_KEY).toBeUndefined();
     expect(parsed.POSTHOG_PROJECT_API_KEY).toBeUndefined();
+    expect(parsed.R2_ALLOWED_WEB_ORIGINS).toEqual([
+      "https://app.example.com",
+      "https://operator.example.com",
+    ]);
+    expect(parsed.R2_DOWNLOAD_URL_TTL_SECONDS).toBe(300);
+    expect(parsed.R2_MAX_UPLOAD_BYTES).toBe(104857600);
     expect(parsed.STRIPE_SECRET_KEY).toBeUndefined();
   });
 });

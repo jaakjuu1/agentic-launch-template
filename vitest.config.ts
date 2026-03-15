@@ -13,6 +13,7 @@ const workspaceAlias = {
     "packages/design-tokens/src/index.ts",
   ),
   "@launch/domain": resolve(__dirname, "packages/domain/src/index.ts"),
+  "@launch/storage": resolve(__dirname, "packages/storage/src/index.ts"),
   "@launch/ui-native": resolve(__dirname, "packages/ui-native/src/index.tsx"),
   "@launch/ui-web": resolve(__dirname, "packages/ui-web/src/index.tsx"),
 };

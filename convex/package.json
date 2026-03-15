@@ -9,10 +9,12 @@
     "build": "node -e \"console.log('Convex build relies on committed generated types. Run pnpm codegen after linking a deployment.')\"",
     "lint": "biome check .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest --root .. run convex/lib/auth.test.ts"
+    "test": "vitest --root .. run convex/lib/auth.test.ts convex/lib/storage.test.ts"
   },
   "dependencies": {
     "@ai-sdk/provider-utils": "^3.0.7",
+    "@ai-sdk/openai": "^2.0.57",
+    "@aws-sdk/client-s3": "^3.917.0",
     "@convex-dev/agent": "latest",
     "@launch/ai": "workspace:*",
     "@launch/analytics": "workspace:*",
@@ -20,9 +22,11 @@
     "@launch/billing": "workspace:*",
     "@launch/config": "workspace:*",
     "@launch/domain": "workspace:*",
+    "@launch/storage": "workspace:*",
     "ai": "^5.0.29",
     "convex": "latest",
     "convex-helpers": "latest",
+    "pdf-parse": "^1.1.1",
     "zod": "latest"
   }
 }

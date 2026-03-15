@@ -5,6 +5,7 @@ import {
   entitlementSchema,
   profileSchema,
   seedPreview,
+  storedFileSchema,
 } from "./index";
 
 describe("domain schemas", () => {
@@ -41,5 +42,9 @@ describe("domain schemas", () => {
     expect(entitlement.metadata).toMatchObject({
       checkoutSessionId: "cs_demo",
     });
+  });
+
+  it("validates first-class stored files for attachments", () => {
+    expect(storedFileSchema.parse(seedPreview.file).status).toBe("ready");
   });
 });

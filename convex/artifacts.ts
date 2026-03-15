@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
 
 import { getViewerIdentity } from "./lib/auth";
+import { hydrateArtifactsWithFiles } from "./lib/storage";
 import { nowIso } from "./lib/time";
 
 export const listArtifacts = query({
@@ -19,10 +20,12 @@ export const listArtifacts = query({
       return [];
     }
 
-    return ctx.db
+    const artifacts = await ctx.db
       .query("artifacts")
       .withIndex("by_profile", (query) => query.eq("profileId", profile._id))
       .collect();
+
+    return hydrateArtifactsWithFiles(ctx.db, artifacts);
   },
 });
 

@@ -11,6 +11,7 @@
       "@launch/config": ["../../packages/config/src/index.ts"],
       "@launch/design-tokens": ["../../packages/design-tokens/src/index.ts"],
       "@launch/domain": ["../../packages/domain/src/index.ts"],
+      "@launch/storage": ["../../packages/storage/src/index.ts"],
       "@launch/ui-native": ["../../packages/ui-native/src/index.tsx"],
       "@launch/ui-web": ["../../packages/ui-web/src/index.tsx"]
     },

@@ -1,0 +1,25 @@
+{
+  "name": "@launch/ui-native",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.tsx --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.tsx --format esm,cjs --dts --watch",
+    "lint": "biome check src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --root ../.. run --passWithNoTests packages/ui-native/src/index.test.tsx"
+  },
+  "dependencies": {
+    "@launch/design-tokens": "workspace:*",
+    "react": "latest",
+    "react-native": "latest"
+  }
+}

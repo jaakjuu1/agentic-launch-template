@@ -1,0 +1,36 @@
+{
+  "name": "@launch/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --root ../.. run tests/web/content.test.ts"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "latest",
+    "@launch/analytics": "workspace:*",
+    "@launch/auth": "workspace:*",
+    "@launch/billing": "workspace:*",
+    "@launch/config": "workspace:*",
+    "@launch/design-tokens": "workspace:*",
+    "@launch/domain": "workspace:*",
+    "@launch/ui-web": "workspace:*",
+    "clsx": "latest",
+    "convex": "latest",
+    "gray-matter": "latest",
+    "next": "latest",
+    "next-mdx-remote": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}

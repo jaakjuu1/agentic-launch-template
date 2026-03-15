@@ -1,0 +1,33 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@launch/ai": ["../../packages/ai/src/index.ts"],
+      "@launch/analytics": ["../../packages/analytics/src/index.ts"],
+      "@launch/auth": ["../../packages/auth/src/index.ts"],
+      "@launch/billing": ["../../packages/billing/src/index.ts"],
+      "@launch/config": ["../../packages/config/src/index.ts"],
+      "@launch/design-tokens": ["../../packages/design-tokens/src/index.ts"],
+      "@launch/domain": ["../../packages/domain/src/index.ts"],
+      "@launch/ui-native": ["../../packages/ui-native/src/index.tsx"],
+      "@launch/ui-web": ["../../packages/ui-web/src/index.tsx"]
+    },
+    "allowJs": true,
+    "incremental": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mdx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

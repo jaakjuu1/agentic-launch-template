@@ -1,0 +1,58 @@
+import { v } from "convex/values";
+import { internalMutation, query } from "./_generated/server";
+
+import { getViewerIdentity } from "./lib/auth";
+import { nowIso } from "./lib/time";
+
+export const listArtifacts = query({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = await getViewerIdentity(ctx);
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_clerk_user_id", (query) =>
+        query.eq("clerkUserId", viewer.clerkUserId),
+      )
+      .unique();
+
+    if (profile === null) {
+      return [];
+    }
+
+    return ctx.db
+      .query("artifacts")
+      .withIndex("by_profile", (query) => query.eq("profileId", profile._id))
+      .collect();
+  },
+});
+
+export const createGeneratedArtifact = internalMutation({
+  args: {
+    body: v.string(),
+    kind: v.union(
+      v.literal("plan"),
+      v.literal("brief"),
+      v.literal("draft"),
+      v.literal("image"),
+      v.literal("report"),
+    ),
+    profileId: v.id("profiles"),
+    projectId: v.optional(v.id("projects")),
+    title: v.string(),
+    workflowRunId: v.optional(v.id("workflowRuns")),
+  },
+  handler: async (ctx, args) => {
+    const now = nowIso();
+    return ctx.db.insert("artifacts", {
+      body: args.body,
+      createdAt: now,
+      kind: args.kind,
+      profileId: args.profileId,
+      projectId: args.projectId,
+      status: "ready",
+      title: args.title,
+      updatedAt: now,
+      workflowRunId: args.workflowRunId,
+    });
+  },
+});

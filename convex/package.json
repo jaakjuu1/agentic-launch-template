@@ -1,0 +1,28 @@
+{
+  "name": "@launch/convex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cd .. && CONVEX_TMPDIR=\"$PWD/.convex-tmp\" convex dev",
+    "codegen": "cd .. && CONVEX_TMPDIR=\"$PWD/.convex-tmp\" convex codegen --typecheck disable",
+    "build": "node -e \"console.log('Convex build relies on committed generated types. Run pnpm codegen after linking a deployment.')\"",
+    "lint": "biome check .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --root .. run convex/lib/auth.test.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/provider-utils": "^3.0.7",
+    "@convex-dev/agent": "latest",
+    "@launch/ai": "workspace:*",
+    "@launch/analytics": "workspace:*",
+    "@launch/auth": "workspace:*",
+    "@launch/billing": "workspace:*",
+    "@launch/config": "workspace:*",
+    "@launch/domain": "workspace:*",
+    "ai": "^5.0.29",
+    "convex": "latest",
+    "convex-helpers": "latest",
+    "zod": "latest"
+  }
+}

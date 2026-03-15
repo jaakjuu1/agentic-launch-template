@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@launch/ai": ["packages/ai/src/index.ts"],
+      "@launch/analytics": ["packages/analytics/src/index.ts"],
+      "@launch/auth": ["packages/auth/src/index.ts"],
+      "@launch/billing": ["packages/billing/src/index.ts"],
+      "@launch/config": ["packages/config/src/index.ts"],
+      "@launch/design-tokens": ["packages/design-tokens/src/index.ts"],
+      "@launch/domain": ["packages/domain/src/index.ts"],
+      "@launch/ui-native": ["packages/ui-native/src/index.tsx"],
+      "@launch/ui-web": ["packages/ui-web/src/index.tsx"]
+    },
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2023",
+    "types": ["node"]
+  }
+}

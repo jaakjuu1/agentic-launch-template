@@ -1,0 +1,81 @@
+@import "@launch/design-tokens/styles.css";
+
+:root {
+  --page-max-width: 1180px;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(255, 107, 53, 0.16),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(95, 154, 255, 0.16),
+      transparent 30%
+    ),
+    var(--launch-color-background);
+}
+
+.page-shell {
+  margin: 0 auto;
+  max-width: var(--page-max-width);
+  padding: 24px;
+}
+
+.hero-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.surface-card {
+  background: var(--launch-gradient-hero);
+  border: 1px solid rgba(22, 32, 42, 0.08);
+  border-radius: 32px;
+  box-shadow: var(--launch-shadow-card);
+}
+
+.info-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.stack {
+  display: grid;
+  gap: 18px;
+}
+
+.operator-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(320px, 0.6fr);
+}
+
+.nav-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.page-section {
+  margin-top: 24px;
+}
+
+@media (max-width: 960px) {
+  .hero-grid,
+  .operator-grid {
+    grid-template-columns: 1fr;
+  }
+}

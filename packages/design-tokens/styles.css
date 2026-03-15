@@ -1,0 +1,38 @@
+:root {
+  --launch-color-accent: #ff6b35;
+  --launch-color-accent-soft: #ffd4c7;
+  --launch-color-background: #f5efe6;
+  --launch-color-card: #fffaf4;
+  --launch-color-ink: #16202a;
+  --launch-color-muted: #5f6772;
+  --launch-color-success: #1b7f5b;
+  --launch-color-surface: #fffdf9;
+  --launch-color-warning: #b85c00;
+  --launch-radius-lg: 24px;
+  --launch-radius-md: 18px;
+  --launch-radius-pill: 999px;
+  --launch-shadow-card: 0 18px 48px rgba(22, 32, 42, 0.08);
+  --launch-gradient-hero: linear-gradient(
+    135deg,
+    #fffaf4 0%,
+    #ffd4c7 48%,
+    #b6d4ff 100%
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--launch-color-background);
+  color: var(--launch-color-ink);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

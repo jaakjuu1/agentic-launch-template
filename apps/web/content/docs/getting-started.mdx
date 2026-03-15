@@ -1,0 +1,27 @@
+---
+title: Getting started
+eyebrow: Docs
+---
+
+This repository is meant to be **referenced and reused**, not admired from a distance.
+
+## What ships in the template
+
+- An Expo product app with launch-ready screens, deep-link configuration, and entitlement surfaces
+- A Next.js web app for marketing, docs, pricing, and an operator/admin console
+- Shared domain contracts, analytics events, billing logic, design tokens, and UI primitives
+- A Convex backend prepared for auth, approvals, workflows, webhooks, and durable agent state
+
+## First setup steps
+
+1. Copy the example env files and fill in provider credentials.
+2. Run `corepack pnpm install`.
+3. Link or start Convex with `corepack pnpm --filter @launch/convex dev`.
+4. Refresh generated backend types with `corepack pnpm codegen`.
+5. Run `corepack pnpm dev` to start the monorepo.
+
+## What to customize first
+
+- Replace the reference domain copy with your product language.
+- Swap the sample analytics and billing catalog with your actual pricing model.
+- Extend the Convex functions and agent tools before exposing any risky side effects.

@@ -133,7 +133,12 @@ function replaceOnce(content: string, from: string, to: string, file: string) {
     return content;
   }
   if (!content.includes(from)) {
-    console.warn(`  ! Could not find "${from}" in ${file} — skipped.`);
+    // An earlier replacement may already have handled a shared value
+    // (slug == scheme, iosBundleId == androidPackage); only warn when
+    // the target value is missing too.
+    if (!content.includes(to)) {
+      console.warn(`  ! Could not find "${from}" in ${file} — skipped.`);
+    }
     return content;
   }
   return content.split(from).join(to);

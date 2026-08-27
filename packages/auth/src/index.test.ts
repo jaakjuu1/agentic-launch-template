@@ -16,13 +16,13 @@ describe("auth helpers", () => {
     ).toBe("admin");
   });
 
-  it("falls back to trusted operator email suffixes", () => {
+  it("does not promote anyone based on email alone by default", () => {
     expect(
       deriveRoleFromClaims({
         email: "ops@launchops.internal",
       }),
-    ).toBe("operator");
-    expect(isTrustedOperatorEmail("builder@example.com")).toBe(true);
+    ).toBe("consumer");
+    expect(isTrustedOperatorEmail("builder@example.com")).toBe(false);
   });
 
   it("defaults unknown roles to consumer", () => {

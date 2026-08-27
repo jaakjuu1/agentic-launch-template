@@ -8,7 +8,14 @@ export const authBootstrapSchema = z.object({
 });
 
 export const operatorClaimKey = "app:role";
-export const adminEmailSuffixes = ["@launchops.internal", "@example.com"];
+
+/**
+ * Optional allowlist of email suffixes that are auto-promoted to
+ * operator. EMPTY by default on purpose: shipping a suffix here means
+ * anyone controlling an address under that domain gets operator access.
+ * Prefer setting the `app:role` public-metadata claim in Clerk instead.
+ */
+export const adminEmailSuffixes: string[] = [];
 
 export function resolveRole(input: string | null | undefined): Role {
   return roleSchema.catch("consumer").parse(input ?? "consumer");

@@ -1,22 +1,17 @@
+import { productConfig } from "@launch/config/product";
 import type { Metadata } from "next";
-import { Instrument_Sans, Space_Grotesk } from "next/font/google";
 
 import "./globals.css";
 
-const bodyFont = Instrument_Sans({
-  subsets: ["latin"],
-  variable: "--font-body",
-});
-
-const displayFont = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-display",
-});
+// Fonts load at runtime with a system-font fallback stack (see
+// @launch/design-tokens/styles.css) so production builds never depend on
+// network access to Google Fonts.
+const FONT_STYLESHEET_URL =
+  "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=Space+Grotesk:wght@400..700&display=swap";
 
 export const metadata: Metadata = {
-  title: "Agentic Launch Template",
-  description:
-    "Expo + Next.js + Convex boilerplate for agent-ready consumer products.",
+  title: productConfig.name,
+  description: productConfig.tagline,
 };
 
 export default function RootLayout({
@@ -26,9 +21,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${bodyFont.variable} ${displayFont.variable}`}>
-        {children}
-      </body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="stylesheet" href={FONT_STYLESHEET_URL} />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

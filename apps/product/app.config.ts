@@ -1,9 +1,13 @@
 import type { ExpoConfig } from "expo/config";
 
+// Imported from source (not the built package) so `expo start` works
+// without building workspace packages first.
+import { productConfig } from "../../packages/config/src/product";
+
 const config: ExpoConfig = {
-  name: "Agentic Launch",
-  slug: "agentic-launch-template",
-  scheme: "agentic-launch",
+  name: productConfig.name,
+  slug: productConfig.slug,
+  scheme: productConfig.mobile.scheme,
   orientation: "portrait",
   userInterfaceStyle: "light",
   plugins: ["expo-router", "expo-secure-store", "expo-notifications"],
@@ -11,7 +15,7 @@ const config: ExpoConfig = {
     typedRoutes: true,
   },
   ios: {
-    bundleIdentifier: "com.example.agenticlaunch",
+    bundleIdentifier: productConfig.mobile.iosBundleId,
     supportsTablet: true,
     infoPlist: {
       NSUserTrackingUsageDescription:
@@ -21,9 +25,9 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    package: "com.example.agenticlaunch",
+    package: productConfig.mobile.androidPackage,
     adaptiveIcon: {
-      backgroundColor: "#f5efe6",
+      backgroundColor: productConfig.branding.backgroundColor,
     },
     permissions: ["POST_NOTIFICATIONS"],
   },
@@ -33,7 +37,7 @@ const config: ExpoConfig = {
   },
   extra: {
     eas: {
-      projectId: "replace-in-eas",
+      projectId: productConfig.mobile.easProjectId,
     },
   },
 };

@@ -1,20 +1,13 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 
-import { getViewerIdentity } from "./lib/auth";
+import { getViewerProfile, requireViewerProfile } from "./lib/auth";
 import { nowIso } from "./lib/time";
 
 export const listNotifications = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await getViewerIdentity(ctx);
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("by_clerk_user_id", (query) =>
-        query.eq("clerkUserId", viewer.clerkUserId),
-      )
-      .unique();
-
+    const profile = await getViewerProfile(ctx);
     if (profile === null) {
       return [];
     }
@@ -23,6 +16,45 @@ export const listNotifications = query({
       .query("notifications")
       .withIndex("by_profile", (query) => query.eq("profileId", profile._id))
       .collect();
+  },
+});
+
+export const markNotificationRead = mutation({
+  args: { notificationId: v.id("notifications") },
+  handler: async (ctx, args) => {
+    const profile = await requireViewerProfile(ctx);
+    const notification = await ctx.db.get(args.notificationId);
+    if (notification === null || notification.profileId !== profile._id) {
+      throw new Error("Notification not found for this user");
+    }
+
+    if (notification.readAt === undefined) {
+      await ctx.db.patch(args.notificationId, { readAt: nowIso() });
+    }
+
+    return ctx.db.get(args.notificationId);
+  },
+});
+
+export const markAllNotificationsRead = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const profile = await requireViewerProfile(ctx);
+    const unread = await ctx.db
+      .query("notifications")
+      .withIndex("by_profile_read", (query) =>
+        query.eq("profileId", profile._id).eq("readAt", undefined),
+      )
+      .collect();
+
+    const now = nowIso();
+    await Promise.all(
+      unread.map((notification) =>
+        ctx.db.patch(notification._id, { readAt: now }),
+      ),
+    );
+
+    return { marked: unread.length };
   },
 });
 

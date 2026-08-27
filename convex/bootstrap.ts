@@ -1,17 +1,23 @@
 import { mutation, query } from "./_generated/server";
-import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
+import { getOrCreateViewerProfile, getViewerProfile } from "./lib/auth";
 import { ensureDemoRecords } from "./lib/demo";
+import { isDemoMode } from "./lib/env";
 import { hydrateArtifactsWithFiles } from "./lib/storage";
 
+/**
+ * Idempotent post-sign-in bootstrap: ensures the viewer profile exists.
+ * In demo mode it also seeds example records so a fresh clone has
+ * something to show; real deployments never receive seed data.
+ */
 export const bootstrapViewer = mutation({
   args: {},
   handler: async (ctx) => {
     const profile = await getOrCreateViewerProfile(ctx);
-    if (profile === null) {
-      throw new Error("Failed to bootstrap viewer profile");
+
+    if (isDemoMode()) {
+      await ensureDemoRecords(ctx, profile._id);
     }
 
-    await ensureDemoRecords(ctx, profile._id);
     return profile;
   },
 });
@@ -19,13 +25,7 @@ export const bootstrapViewer = mutation({
 export const dashboard = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await getViewerIdentity(ctx);
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("by_clerk_user_id", (query) =>
-        query.eq("clerkUserId", viewer.clerkUserId),
-      )
-      .unique();
+    const profile = await getViewerProfile(ctx);
 
     if (profile === null) {
       return {

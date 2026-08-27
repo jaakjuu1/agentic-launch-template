@@ -1,20 +1,13 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 
-import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
+import { getViewerProfile, requireViewerProfile } from "./lib/auth";
 import { nowIso } from "./lib/time";
 
 export const listApprovals = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await getViewerIdentity(ctx);
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("by_clerk_user_id", (query) =>
-        query.eq("clerkUserId", viewer.clerkUserId),
-      )
-      .unique();
-
+    const profile = await getViewerProfile(ctx);
     if (profile === null) {
       return [];
     }
@@ -32,9 +25,17 @@ export const decideApproval = mutation({
     decision: v.union(v.literal("approved"), v.literal("rejected")),
   },
   handler: async (ctx, args) => {
-    const profile = await getOrCreateViewerProfile(ctx);
-    if (profile === null) {
-      throw new Error("Unable to resolve viewer profile");
+    const profile = await requireViewerProfile(ctx);
+
+    const approval = await ctx.db.get(args.approvalId);
+    if (approval === null || approval.profileId !== profile._id) {
+      throw new Error("Approval not found for this user");
+    }
+
+    if (approval.status !== "pending") {
+      throw new Error(
+        `Approval was already ${approval.status}; only pending approvals can be decided`,
+      );
     }
 
     await ctx.db.patch(args.approvalId, {
@@ -51,6 +52,9 @@ export const requestApproval = internalMutation({
   args: {
     description: v.string(),
     profileId: v.id("profiles"),
+    riskLevel: v.optional(
+      v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
+    ),
     title: v.string(),
     toolRunId: v.string(),
   },
@@ -59,7 +63,7 @@ export const requestApproval = internalMutation({
       createdAt: nowIso(),
       description: args.description,
       profileId: args.profileId,
-      riskLevel: "high",
+      riskLevel: args.riskLevel ?? "high",
       status: "pending",
       title: args.title,
       toolRunId: args.toolRunId,

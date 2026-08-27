@@ -1,47 +1,78 @@
-import { openai } from "@ai-sdk/openai";
 import { Agent, createTool, listUIMessages } from "@convex-dev/agent";
+import { productConfig } from "@launch/config/product";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { z } from "zod";
 import { components, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import { action, internalQuery, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalQuery,
+  mutation,
+  type QueryCtx,
+  query,
+} from "./_generated/server";
 
-import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
+import { resolveChatModel } from "./lib/ai";
+import { getViewerIdentity } from "./lib/auth";
+
+/**
+ * Resolve the calling user's profile from inside an agent tool handler.
+ * Tool handlers receive the agent component ctx with `userId` set to the
+ * Clerk user id passed into createThread/continueThread.
+ */
+async function resolveToolProfile(ctx: {
+  userId?: string | null;
+  runQuery: QueryCtx["runQuery"];
+}): Promise<Doc<"profiles">> {
+  if (!ctx.userId) {
+    throw new Error("Tools require a user context");
+  }
+
+  const profile: Doc<"profiles"> | null = await ctx.runQuery(
+    internal.profiles.getByClerkUserId,
+    { clerkUserId: ctx.userId },
+  );
+
+  if (profile === null) {
+    throw new Error("Unable to resolve profile for tool call");
+  }
+
+  return profile;
+}
 
 const requestArtifactTool = createTool({
   description:
     "Create a generated artifact and durable workflow record for the current project.",
   args: z.object({
-    projectId: z.string().optional(),
-    prompt: z.string(),
-    title: z.string(),
+    projectId: z
+      .string()
+      .optional()
+      .describe("Optional project id the artifact belongs to"),
+    prompt: z.string().describe("What the artifact should contain"),
+    title: z.string().describe("Short human-readable artifact title"),
   }),
   handler: async (
     ctx,
     args,
   ): Promise<{ status: "queued"; workflowRunId: Id<"workflowRuns"> }> => {
-    if (!ctx.userId) {
-      throw new Error("Tools require a user context");
-    }
+    const profile = await resolveToolProfile(ctx);
 
-    const profile: Doc<"profiles"> | null = await ctx.runQuery(
-      internal.agent.resolveProfileByClerkUserId,
-      {
-        clerkUserId: ctx.userId,
-      },
-    );
-
-    if (profile === null) {
-      throw new Error("Unable to resolve profile for artifact tool");
-    }
+    // Validate the model-supplied projectId: it must parse and belong to
+    // the calling user, otherwise the artifact is created unattached.
+    const projectId: Id<"projects"> | null = args.projectId
+      ? await ctx.runQuery(internal.projects.resolveOwnedProjectId, {
+          candidateId: args.projectId,
+          profileId: profile._id,
+        })
+      : null;
 
     const workflowRunId: Id<"workflowRuns"> = await ctx.runMutation(
       internal.workflows.createWorkflowRecord,
       {
         kind: "artifact_generation",
         profileId: profile._id,
-        projectId: args.projectId as any,
+        projectId: projectId ?? undefined,
         threadId: ctx.threadId,
         trigger: "user",
       },
@@ -49,7 +80,7 @@ const requestArtifactTool = createTool({
 
     await ctx.scheduler.runAfter(0, internal.workflows.runArtifactWorkflow, {
       profileId: profile._id,
-      projectId: args.projectId as any,
+      projectId: projectId ?? undefined,
       prompt: args.prompt,
       title: args.title,
       workflowRunId,
@@ -61,35 +92,24 @@ const requestArtifactTool = createTool({
 
 const riskyApprovalTool = createTool({
   description:
-    "Create an approval gate before performing a risky external action.",
+    "Create an approval gate before performing a risky external action. The action must not run until a human approves it.",
   args: z.object({
-    description: z.string(),
-    title: z.string(),
+    description: z.string().describe("What would happen and why it is risky"),
+    riskLevel: z.enum(["low", "medium", "high"]).default("high"),
+    title: z.string().describe("Short title for the approval request"),
   }),
   handler: async (
     ctx,
     args,
   ): Promise<{ approvalId: Id<"approvals">; status: "pending" }> => {
-    if (!ctx.userId) {
-      throw new Error("Tools require a user context");
-    }
-
-    const profile: Doc<"profiles"> | null = await ctx.runQuery(
-      internal.agent.resolveProfileByClerkUserId,
-      {
-        clerkUserId: ctx.userId,
-      },
-    );
-
-    if (profile === null) {
-      throw new Error("Unable to resolve profile for approval tool");
-    }
+    const profile = await resolveToolProfile(ctx);
 
     const approvalId: Id<"approvals"> = await ctx.runMutation(
       internal.approvals.requestApproval,
       {
         description: args.description,
         profileId: profile._id,
+        riskLevel: args.riskLevel,
         title: args.title,
         toolRunId: ctx.messageId ?? "tool_request",
       },
@@ -99,11 +119,15 @@ const riskyApprovalTool = createTool({
   },
 }) as any;
 
-const productivityAgent: Agent<any, any> = new Agent(components.agent, {
-  instructions:
-    "You are the durable productivity companion for a consumer launch template. Help users turn goals into artifacts, queue background workflows, and route risky actions into approval requests.",
-  languageModel: openai.chat("gpt-5-mini"),
-  name: "productivity_companion",
+/**
+ * The product's primary agent. Identity, instructions, and default model
+ * come from the product config — edit packages/config/src/product.ts (or
+ * set AI_MODEL on the deployment) instead of this file when cloning.
+ */
+const productAgent: Agent<any, any> = new Agent(components.agent, {
+  instructions: productConfig.agent.instructions,
+  languageModel: resolveChatModel(),
+  name: productConfig.agent.name,
   tools: {
     requestArtifactTool,
     riskyApprovalTool,
@@ -121,21 +145,53 @@ export const resolveProfileByClerkUserId = internalQuery({
       .unique(),
 });
 
+type ThreadMetadata = {
+  userId?: string | null;
+} | null;
+
+async function assertViewerOwnsThread(
+  ctx: {
+    runQuery: QueryCtx["runQuery"];
+  },
+  threadId: string,
+  clerkUserId: string,
+): Promise<void> {
+  const thread = (await ctx.runQuery(components.agent.threads.getThread, {
+    threadId,
+  })) as ThreadMetadata;
+
+  if (thread === null || thread.userId !== clerkUserId) {
+    throw new Error("Thread not found for this user");
+  }
+}
+
 export const createThread = mutation({
   args: {
     summary: v.optional(v.string()),
-    title: v.string(),
+    title: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ threadId: string }> => {
-    const profile = await getOrCreateViewerProfile(ctx);
-    if (profile === null) {
-      throw new Error("Unable to resolve viewer profile");
-    }
+    const viewer = await getViewerIdentity(ctx);
+    await ctx.runMutation(internal.profiles.ensureProfileForViewer, {});
 
-    return productivityAgent.createThread(ctx, {
+    return productAgent.createThread(ctx, {
       summary: args.summary,
-      title: args.title,
-      userId: profile.clerkUserId,
+      title: args.title ?? "New conversation",
+      userId: viewer.clerkUserId,
+    });
+  },
+});
+
+export const listThreads = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewerIdentity(ctx);
+    return ctx.runQuery(components.agent.threads.listThreadsByUserId, {
+      order: "desc",
+      paginationOpts: args.paginationOpts,
+      userId: viewer.clerkUserId,
     });
   },
 });
@@ -145,7 +201,11 @@ export const listThreadUiMessages = query({
     paginationOpts: paginationOptsValidator,
     threadId: v.string(),
   },
-  handler: async (ctx, args) => listUIMessages(ctx, components.agent, args),
+  handler: async (ctx, args) => {
+    const viewer = await getViewerIdentity(ctx);
+    await assertViewerOwnsThread(ctx, args.threadId, viewer.clerkUserId);
+    return listUIMessages(ctx, components.agent, args);
+  },
 });
 
 export const sendPrompt = action({
@@ -156,15 +216,26 @@ export const sendPrompt = action({
   },
   handler: async (ctx, args): Promise<{ text: string; usage: unknown }> => {
     const viewer = await getViewerIdentity(ctx);
+    await assertViewerOwnsThread(ctx, args.threadId, viewer.clerkUserId);
+
+    const profile: Doc<"profiles"> | null = await ctx.runQuery(
+      internal.profiles.getByClerkUserId,
+      { clerkUserId: viewer.clerkUserId },
+    );
+    if (profile === null) {
+      throw new Error("Bootstrap the viewer profile before chatting");
+    }
+
     const attachmentContext =
       args.attachmentFileIds && args.attachmentFileIds.length > 0
         ? await ctx.runQuery(internal.storage.resolvePromptAttachments, {
             attachmentFileIds: args.attachmentFileIds,
             clerkUserId: viewer.clerkUserId,
-            role: viewer.role,
+            role: profile.role,
           })
         : [];
-    const { thread } = await productivityAgent.continueThread(ctx, {
+
+    const { thread } = await productAgent.continueThread(ctx, {
       threadId: args.threadId,
       userId: viewer.clerkUserId,
     });

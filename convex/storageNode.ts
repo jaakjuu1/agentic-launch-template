@@ -1,6 +1,5 @@
 "use node";
 
-import { openai } from "@ai-sdk/openai";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { parseConvexEnv } from "@launch/config";
 import {
@@ -20,6 +19,7 @@ import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
 
+import { resolveEmbeddingModel } from "./lib/ai";
 import {
   canExtractTextFromMime,
   chunkExtractedText,
@@ -49,7 +49,7 @@ const actorRoleValidator = v.union(
   v.literal("admin"),
 );
 
-function getRequiredR2Config() {
+function tryGetR2Config() {
   const env = parseConvexEnv(process.env);
   if (
     !env.R2_ACCOUNT_ID ||
@@ -57,9 +57,7 @@ function getRequiredR2Config() {
     !env.R2_SECRET_ACCESS_KEY ||
     !env.R2_PRIVATE_BUCKET
   ) {
-    throw new Error(
-      "R2 storage is not configured. Set the R2_* variables in convex/.env.local.",
-    );
+    return null;
   }
 
   return {
@@ -73,6 +71,17 @@ function getRequiredR2Config() {
     maxUploadBytes: env.R2_MAX_UPLOAD_BYTES ?? 100 * 1024 * 1024,
     uploadTtlSeconds: env.R2_UPLOAD_URL_TTL_SECONDS ?? 600,
   };
+}
+
+function getRequiredR2Config() {
+  const config = tryGetR2Config();
+  if (config === null) {
+    throw new Error(
+      "R2 storage is not configured. Set the R2_* variables in convex/.env.local.",
+    );
+  }
+
+  return config;
 }
 
 async function toBuffer(body: unknown) {
@@ -137,7 +146,7 @@ async function buildEmbeddings(chunks: string[]) {
   }
 
   const result = await embedMany({
-    model: openai.textEmbeddingModel("text-embedding-3-small"),
+    model: resolveEmbeddingModel(),
     values: chunks,
   });
 
@@ -247,8 +256,11 @@ export const beginUploadNode = internalAction({
       mimeType: args.mimeType,
     });
 
+    // Schedule the sweep far enough out that THIS upload is already past
+    // the stale window when it runs (an hourly cron in crons.ts covers
+    // quiet deployments).
     await ctx.scheduler.runAfter(
-      (config.uploadTtlSeconds + 300) * 1000,
+      staleUploadWindowMs + 60 * 1000,
       internal.storageNode.cleanupStaleUploads,
       {},
     );
@@ -307,6 +319,15 @@ export const completeUploadNode = internalAction({
       throw new Error("Unable to resolve the uploaded file");
     }
 
+    // Idempotency guard: only a pending upload can be completed. Repeat
+    // calls (client retries) return without re-processing.
+    if (record.file.status !== "pending_upload") {
+      return {
+        fileId: args.fileId,
+        status: "uploaded" as const,
+      };
+    }
+
     const attachedToTarget = record.attachments.some(
       (attachment: { targetId: string; targetType: string }) =>
         attachment.targetId === args.targetId &&
@@ -325,10 +346,54 @@ export const completeUploadNode = internalAction({
       key: record.file.objectKey,
     });
 
+    // Re-validate against the ACTUAL uploaded size — the presigned PUT
+    // cannot enforce a content-length, so the client-declared size at
+    // beginUpload is advisory only.
+    const actualBytes = head.ContentLength ?? record.file.sizeBytes;
+    const policy: {
+      tier: "free" | "pro" | "lifetime";
+      totalUsageBytes: number;
+    } = await ctx.runQuery(internal.storage.resolveUploadPolicy, {
+      clerkUserId: args.viewerClerkUserId,
+      role: args.viewerRole,
+      targetId: args.targetId,
+      targetType: args.targetType,
+    });
+
+    try {
+      assertUploadAllowed({
+        fileName: record.file.fileName,
+        maxUploadBytes: config.maxUploadBytes,
+        mimeType: record.file.mimeType,
+        sizeBytes: actualBytes,
+        tier: policy.tier,
+        // The pending record's declared size is already counted in usage;
+        // subtract it so the real size is what gets checked.
+        totalUsageBytes: Math.max(
+          0,
+          policy.totalUsageBytes - record.file.sizeBytes,
+        ),
+      });
+    } catch (quotaError) {
+      await deletePrivateObject({
+        bucket: config.bucket,
+        client: config.client,
+        key: record.file.objectKey,
+      }).catch(() => undefined);
+      await ctx.runMutation(internal.storage.markFileFailed, {
+        fileId: args.fileId,
+        lastError:
+          quotaError instanceof Error
+            ? quotaError.message
+            : "Uploaded object exceeded the allowed size",
+      });
+      throw quotaError;
+    }
+
     await ctx.runMutation(internal.storage.finalizeUploadedFile, {
       etag: args.etag ?? head.ETag,
       fileId: args.fileId,
-      sizeBytes: head.ContentLength ?? record.file.sizeBytes,
+      sizeBytes: actualBytes,
     });
 
     await ctx.scheduler.runAfter(0, internal.storageNode.processReadyFile, {
@@ -442,7 +507,12 @@ export const deleteFileNode = internalAction({
       key: record.file.objectKey,
     }).catch(() => undefined);
 
+    // Tombstone the file row and purge derived data (extracted text
+    // chunks, attachment links) so deletion actually removes content.
     await ctx.runMutation(internal.storage.markFileDeleted, {
+      fileId: args.fileId,
+    });
+    await ctx.runMutation(internal.storage.purgeFileDerivedData, {
       fileId: args.fileId,
     });
 
@@ -618,7 +688,12 @@ export const processReadyFile = internalAction({
 export const cleanupStaleUploads = internalAction({
   args: {},
   handler: async (ctx): Promise<void> => {
-    const config = getRequiredR2Config();
+    // Runs from a cron even before storage is configured — no-op then.
+    const config = tryGetR2Config();
+    if (config === null) {
+      return;
+    }
+
     const beforeIso = new Date(Date.now() - staleUploadWindowMs).toISOString();
     const staleFiles = await ctx.runQuery(
       internal.storage.listStalePendingUploads,
@@ -629,17 +704,50 @@ export const cleanupStaleUploads = internalAction({
 
     await Promise.all(
       staleFiles.map(async (file: (typeof staleFiles)[number]) => {
-        await deletePrivateObject({
-          bucket: config.bucket,
-          client: config.client,
-          key: file.objectKey,
-        }).catch(() => undefined);
+        if (file.objectKey !== "pending") {
+          await deletePrivateObject({
+            bucket: config.bucket,
+            client: config.client,
+            key: file.objectKey,
+          }).catch(() => undefined);
+        }
 
         await ctx.runMutation(internal.storage.markFileFailed, {
           fileId: file._id,
           lastError: "Upload window expired before completion",
         });
       }),
+    );
+  },
+});
+
+/**
+ * Best-effort removal of R2 objects after their database rows are gone
+ * (profile deletion cascade).
+ */
+export const hardDeleteObjects = internalAction({
+  args: {
+    objects: v.array(
+      v.object({
+        bucket: v.string(),
+        objectKey: v.string(),
+      }),
+    ),
+  },
+  handler: async (_ctx, args): Promise<void> => {
+    const config = tryGetR2Config();
+    if (config === null) {
+      return;
+    }
+
+    await Promise.all(
+      args.objects.map((object) =>
+        deletePrivateObject({
+          bucket: object.bucket,
+          client: config.client,
+          key: object.objectKey,
+        }).catch(() => undefined),
+      ),
     );
   },
 });

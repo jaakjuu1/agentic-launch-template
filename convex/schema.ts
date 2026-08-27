@@ -1,13 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+import { EMBEDDING_DIMENSIONS } from "./lib/env";
+
 export default defineSchema({
   approvals: defineTable({
     createdAt: v.string(),
     decidedAt: v.optional(v.string()),
     decidedBy: v.optional(v.string()),
     description: v.string(),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     riskLevel: v.union(
       v.literal("low"),
       v.literal("medium"),
@@ -35,7 +37,7 @@ export default defineSchema({
       v.literal("image"),
       v.literal("report"),
     ),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     projectId: v.optional(v.id("projects")),
     status: v.union(
       v.literal("queued"),
@@ -54,17 +56,20 @@ export default defineSchema({
       filterFields: ["profileId"],
     })
     .vectorIndex("by_embedding", {
-      dimensions: 1536,
+      dimensions: EMBEDDING_DIMENSIONS,
       filterFields: ["profileId"],
       vectorField: "embedding",
     }),
   auditEvents: defineTable({
     actorId: v.optional(v.string()),
     createdAt: v.string(),
+    dedupeKey: v.optional(v.string()),
     payload: v.optional(v.any()),
     source: v.string(),
     title: v.string(),
-  }).index("by_created_at", ["createdAt"]),
+  })
+    .index("by_created_at", ["createdAt"])
+    .index("by_dedupe_key", ["dedupeKey"]),
   entitlements: defineTable({
     active: v.boolean(),
     createdAt: v.string(),
@@ -72,7 +77,7 @@ export default defineSchema({
     metadata: v.optional(v.any()),
     originalTransactionId: v.optional(v.string()),
     productKey: v.string(),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     renewsAt: v.optional(v.string()),
     source: v.union(
       v.literal("stripe"),
@@ -115,7 +120,7 @@ export default defineSchema({
     .index("by_file", ["fileId"])
     .index("by_profile", ["profileId"])
     .vectorIndex("by_embedding", {
-      dimensions: 1536,
+      dimensions: EMBEDDING_DIMENSIONS,
       filterFields: ["profileId"],
       vectorField: "embedding",
     }),
@@ -161,7 +166,7 @@ export default defineSchema({
     .index("by_object_key", ["objectKey"])
     .index("by_profile", ["profileId"])
     .index("by_profile_status", ["profileId", "status"])
-    .index("by_status", ["status"])
+    .index("by_status_created", ["status", "createdAt"])
     .searchIndex("search_name", {
       searchField: "fileName",
       filterFields: ["profileId"],
@@ -171,7 +176,7 @@ export default defineSchema({
     description: v.string(),
     dueAt: v.optional(v.string()),
     priority: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     status: v.union(
       v.literal("draft"),
       v.literal("active"),
@@ -195,7 +200,7 @@ export default defineSchema({
     ),
     createdAt: v.string(),
     deepLink: v.optional(v.string()),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     readAt: v.optional(v.string()),
     sentAt: v.optional(v.string()),
     title: v.string(),
@@ -226,7 +231,7 @@ export default defineSchema({
     createdAt: v.string(),
     goalId: v.optional(v.id("goals")),
     name: v.string(),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     progressPercent: v.number(),
     summary: v.string(),
     tags: v.array(v.string()),
@@ -241,7 +246,7 @@ export default defineSchema({
   supportRequests: defineTable({
     body: v.string(),
     createdAt: v.string(),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     status: v.union(
       v.literal("open"),
       v.literal("triaged"),
@@ -283,7 +288,7 @@ export default defineSchema({
       v.literal("file_cleanup"),
     ),
     lastError: v.optional(v.string()),
-    profileId: v.string(),
+    profileId: v.id("profiles"),
     projectId: v.optional(v.id("projects")),
     status: v.union(
       v.literal("queued"),

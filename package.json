@@ -16,7 +16,7 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "format": "biome check --write .",
     "clean": "git clean -xfd node_modules .turbo dist coverage .next"

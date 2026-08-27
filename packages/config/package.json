@@ -7,12 +7,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./product": {
+      "types": "./dist/product.d.ts",
+      "import": "./dist/product.js",
+      "require": "./dist/product.cjs"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts src/product.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts src/product.ts --format esm,cjs --dts --watch",
     "lint": "biome check src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest --root ../.. run packages/config/src/index.test.ts"

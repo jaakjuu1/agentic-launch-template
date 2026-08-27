@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import {
+  type ActionCtx,
   action,
   internalMutation,
   internalQuery,
@@ -10,7 +11,7 @@ import {
   query,
 } from "./_generated/server";
 
-import { getViewerIdentity } from "./lib/auth";
+import { getViewerIdentity, getViewerProfile } from "./lib/auth";
 import {
   isProfileOwnedTarget,
   normalizeEtag,
@@ -93,6 +94,27 @@ async function getTargetProfileId(
   }
 }
 
+/**
+ * Resolve the caller's identity + effective role (from the profile
+ * record) inside an action.
+ */
+async function resolveActionViewer(
+  ctx: ActionCtx,
+): Promise<{ clerkUserId: string; role: Doc<"profiles">["role"] }> {
+  const viewer = await getViewerIdentity(ctx);
+  const profile: Doc<"profiles"> | null = await ctx.runQuery(
+    internal.profiles.getByClerkUserId,
+    { clerkUserId: viewer.clerkUserId },
+  );
+  if (profile === null) {
+    throw new Error(
+      "Viewer profile does not exist yet. Call bootstrap.bootstrapViewer after sign-in.",
+    );
+  }
+
+  return { clerkUserId: viewer.clerkUserId, role: profile.role };
+}
+
 function serializeFile(
   file: Doc<"files">,
   attachment: Doc<"fileAttachments"> | null,
@@ -103,35 +125,6 @@ function serializeFile(
     etag: normalizeEtag(file.etag),
   };
 }
-
-export const ensureViewerProfileRecord = internalMutation({
-  args: {
-    clerkUserId: v.string(),
-    email: v.string(),
-    role: actorRoleValidator,
-  },
-  handler: async (ctx, args): Promise<Id<"profiles">> => {
-    const existing = await getProfileByClerkUserId(ctx, args.clerkUserId);
-    if (existing) {
-      return existing._id;
-    }
-
-    const now = nowIso();
-    const firstName = args.email.split("@")[0]?.slice(0, 24) || "Launch";
-    return ctx.db.insert("profiles", {
-      analyticsConsent: true,
-      clerkUserId: args.clerkUserId,
-      createdAt: now,
-      email: args.email,
-      firstName,
-      locale: "en-US",
-      marketingConsent: true,
-      role: args.role,
-      timezone: "Europe/Helsinki",
-      updatedAt: now,
-    });
-  },
-});
 
 export const resolveUploadPolicy = internalQuery({
   args: {
@@ -347,13 +340,33 @@ export const listStalePendingUploads = internalQuery({
   args: {
     beforeIso: v.string(),
   },
-  handler: async (ctx, args) => {
-    const pendingFiles = await ctx.db
+  handler: async (ctx, args) =>
+    ctx.db
       .query("files")
-      .withIndex("by_status", (query) => query.eq("status", "pending_upload"))
-      .collect();
+      .withIndex("by_status_created", (query) =>
+        query.eq("status", "pending_upload").lt("createdAt", args.beforeIso),
+      )
+      .collect(),
+});
 
-    return pendingFiles.filter((file) => file.createdAt < args.beforeIso);
+/** Remove extracted text chunks and attachment links for a deleted file. */
+export const purgeFileDerivedData = internalMutation({
+  args: { fileId: v.id("files") },
+  handler: async (ctx, args) => {
+    const [chunks, attachments] = await Promise.all([
+      ctx.db
+        .query("fileChunks")
+        .withIndex("by_file", (query) => query.eq("fileId", args.fileId))
+        .collect(),
+      ctx.db
+        .query("fileAttachments")
+        .withIndex("by_file", (query) => query.eq("fileId", args.fileId))
+        .collect(),
+    ]);
+
+    await Promise.all(
+      [...chunks, ...attachments].map((row) => ctx.db.delete(row._id)),
+    );
   },
 });
 
@@ -460,18 +473,14 @@ export const listForTarget = query({
     targetType: fileTargetTypeValidator,
   },
   handler: async (ctx, args) => {
-    const viewer = await getViewerIdentity(ctx);
-    const viewerProfile = await getProfileByClerkUserId(
-      ctx,
-      viewer.clerkUserId,
-    );
+    const viewerProfile = await getViewerProfile(ctx);
     if (viewerProfile === null) {
       return [];
     }
 
     const targetProfileId = await getTargetProfileId(ctx, args);
     if (
-      viewer.role === "consumer" &&
+      viewerProfile.role === "consumer" &&
       args.targetType !== "agent_message" &&
       !isProfileOwnedTarget(viewerProfile._id, {
         profileId: targetProfileId ?? "",
@@ -495,7 +504,7 @@ export const listForTarget = query({
         }
 
         if (
-          viewer.role === "consumer" &&
+          viewerProfile.role === "consumer" &&
           file.profileId !== viewerProfile._id
         ) {
           return null;
@@ -532,17 +541,16 @@ export const beginUpload = action({
     uploadUrl: string;
   }> => {
     const viewer = await getViewerIdentity(ctx);
-    await ctx.runMutation(internal.storage.ensureViewerProfileRecord, {
-      clerkUserId: viewer.clerkUserId,
-      email: viewer.email,
-      role: viewer.role,
-    });
+    const profile: Doc<"profiles"> = await ctx.runMutation(
+      internal.profiles.ensureProfileForViewer,
+      {},
+    );
 
     return ctx.runAction(internal.storageNode.beginUploadNode, {
       ...args,
       viewerClerkUserId: viewer.clerkUserId,
       viewerEmail: viewer.email,
-      viewerRole: viewer.role,
+      viewerRole: profile.role,
     });
   },
 });
@@ -558,7 +566,7 @@ export const completeUpload = action({
     ctx,
     args,
   ): Promise<{ fileId: Id<"files">; status: "uploaded" }> => {
-    const viewer = await getViewerIdentity(ctx);
+    const viewer = await resolveActionViewer(ctx);
     return ctx.runAction(internal.storageNode.completeUploadNode, {
       ...args,
       viewerClerkUserId: viewer.clerkUserId,
@@ -582,7 +590,7 @@ export const getDownloadUrl = action({
     expiresAt: string;
     url: string;
   }> => {
-    const viewer = await getViewerIdentity(ctx);
+    const viewer = await resolveActionViewer(ctx);
     return ctx.runAction(internal.storageNode.getDownloadUrlNode, {
       ...args,
       viewerClerkUserId: viewer.clerkUserId,
@@ -599,7 +607,7 @@ export const deleteFile = action({
     ctx,
     args,
   ): Promise<{ fileId: Id<"files">; status: "deleted" }> => {
-    const viewer = await getViewerIdentity(ctx);
+    const viewer = await resolveActionViewer(ctx);
     return ctx.runAction(internal.storageNode.deleteFileNode, {
       ...args,
       viewerClerkUserId: viewer.clerkUserId,

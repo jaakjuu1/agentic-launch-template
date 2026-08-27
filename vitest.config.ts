@@ -7,6 +7,12 @@ const workspaceAlias = {
   "@launch/analytics": resolve(__dirname, "packages/analytics/src/index.ts"),
   "@launch/auth": resolve(__dirname, "packages/auth/src/index.ts"),
   "@launch/billing": resolve(__dirname, "packages/billing/src/index.ts"),
+  // More specific subpath first: plain prefix aliasing would otherwise
+  // rewrite "@launch/config/product" to ".../index.ts/product".
+  "@launch/config/product": resolve(
+    __dirname,
+    "packages/config/src/product.ts",
+  ),
   "@launch/config": resolve(__dirname, "packages/config/src/index.ts"),
   "@launch/design-tokens": resolve(
     __dirname,

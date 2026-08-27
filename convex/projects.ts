@@ -1,20 +1,14 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { internalQuery, mutation, query } from "./_generated/server";
 
-import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
+import { getOrCreateViewerProfile, getViewerProfile } from "./lib/auth";
 import { nowIso } from "./lib/time";
 
 export const listProjects = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await getViewerIdentity(ctx);
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("by_clerk_user_id", (query) =>
-        query.eq("clerkUserId", viewer.clerkUserId),
-      )
-      .unique();
-
+    const profile = await getViewerProfile(ctx);
     if (profile === null) {
       return [];
     }
@@ -34,9 +28,6 @@ export const createProject = mutation({
   },
   handler: async (ctx, args) => {
     const profile = await getOrCreateViewerProfile(ctx);
-    if (profile === null) {
-      throw new Error("Unable to resolve viewer profile");
-    }
 
     const now = nowIso();
     return ctx.db.insert("projects", {
@@ -48,5 +39,27 @@ export const createProject = mutation({
       tags: args.tags ?? [],
       updatedAt: now,
     });
+  },
+});
+
+/**
+ * Internal: validate a model- or client-supplied project id string and
+ * return it only when it parses and belongs to the given profile.
+ */
+export const resolveOwnedProjectId = internalQuery({
+  args: {
+    candidateId: v.string(),
+    profileId: v.id("profiles"),
+  },
+  handler: async (ctx, args): Promise<Id<"projects"> | null> => {
+    const projectId = ctx.db.normalizeId("projects", args.candidateId);
+    if (projectId === null) {
+      return null;
+    }
+
+    const project = await ctx.db.get(projectId);
+    return project !== null && project.profileId === args.profileId
+      ? projectId
+      : null;
   },
 });

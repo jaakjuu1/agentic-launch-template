@@ -1,19 +1,13 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-import { getOrCreateViewerProfile, getViewerIdentity } from "./lib/auth";
+import { getOrCreateViewerProfile, getViewerProfile } from "./lib/auth";
 import { nowIso } from "./lib/time";
 
 export const listGoals = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await getViewerIdentity(ctx);
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("by_clerk_user_id", (query) =>
-        query.eq("clerkUserId", viewer.clerkUserId),
-      )
-      .unique();
+    const profile = await getViewerProfile(ctx);
 
     if (profile === null) {
       return [];
@@ -34,9 +28,6 @@ export const createGoal = mutation({
   },
   handler: async (ctx, args) => {
     const profile = await getOrCreateViewerProfile(ctx);
-    if (profile === null) {
-      throw new Error("Unable to resolve viewer profile");
-    }
 
     const now = nowIso();
     return ctx.db.insert("goals", {

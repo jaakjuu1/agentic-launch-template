@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@launch/design-tokens": "workspace:*",
-    "react": "latest",
-    "react-native": "latest"
+    "react": "^19.2.4",
+    "react-native": "^0.84.1"
   }
 }

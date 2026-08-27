@@ -24,6 +24,6 @@
     "test": "vitest --root ../.. run packages/config/src/index.test.ts"
   },
   "dependencies": {
-    "zod": "latest"
+    "zod": "^4.3.6"
   }
 }

@@ -22,9 +22,9 @@
     "@ai-sdk/provider-utils": "^3.0.7",
     "@launch/config": "workspace:*",
     "@launch/domain": "workspace:*",
-    "@openai/agents": "latest",
-    "@openai/agents-openai": "latest",
+    "@openai/agents": "^0.7.1",
+    "@openai/agents-openai": "^0.7.1",
     "ai": "^5.0.29",
-    "zod": "latest"
+    "zod": "^4.3.6"
   }
 }

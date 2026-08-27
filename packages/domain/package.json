@@ -18,6 +18,6 @@
     "test": "vitest --root ../.. run packages/domain/src/index.test.ts"
   },
   "dependencies": {
-    "zod": "latest"
+    "zod": "^4.3.6"
   }
 }

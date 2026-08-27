@@ -15,7 +15,7 @@
     "@ai-sdk/provider-utils": "^3.0.7",
     "@ai-sdk/openai": "^2.0.57",
     "@aws-sdk/client-s3": "^3.917.0",
-    "@convex-dev/agent": "latest",
+    "@convex-dev/agent": "^0.3.2",
     "@launch/ai": "workspace:*",
     "@launch/analytics": "workspace:*",
     "@launch/auth": "workspace:*",
@@ -24,10 +24,10 @@
     "@launch/domain": "workspace:*",
     "@launch/storage": "workspace:*",
     "ai": "^5.0.29",
-    "convex": "latest",
-    "convex-helpers": "latest",
+    "convex": "^1.33.1",
+    "convex-helpers": "^0.1.114",
     "pdf-parse": "^1.1.1",
-    "zod": "latest"
+    "zod": "^4.3.6"
   },
   "exports": {
     "./_generated/api": {

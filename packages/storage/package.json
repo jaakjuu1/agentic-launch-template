@@ -21,6 +21,6 @@
     "@aws-sdk/client-s3": "^3.917.0",
     "@aws-sdk/s3-request-presigner": "^3.917.0",
     "@launch/domain": "workspace:*",
-    "zod": "latest"
+    "zod": "^4.3.6"
   }
 }

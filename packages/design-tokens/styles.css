@@ -29,7 +29,9 @@ body {
   margin: 0;
   background: var(--launch-color-background);
   color: var(--launch-color-ink);
-  font-family: "Instrument Sans", system-ui, sans-serif;
+  font-family:
+    "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
 }
 
 a {

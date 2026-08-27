@@ -19,3 +19,5 @@ apps/web/tsconfig.tsbuildinfo
 convex/.cache
 convex/.turbo
 *.tsbuildinfo
+playwright-report
+test-results

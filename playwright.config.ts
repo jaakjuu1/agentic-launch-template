@@ -10,6 +10,12 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    launchOptions: {
+      // Sandboxed/agentic environments ship a preinstalled Chromium whose
+      // version may not match this Playwright release — point
+      // PLAYWRIGHT_CHROMIUM_EXECUTABLE at it instead of downloading.
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined,
+    },
   },
   webServer: process.env.E2E_BASE_URL
     ? undefined

@@ -12,7 +12,7 @@
     "test": "vitest --root ../.. run tests/web/content.test.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "latest",
+    "@clerk/nextjs": "^7.0.4",
     "@launch/analytics": "workspace:*",
     "@launch/auth": "workspace:*",
     "@launch/billing": "workspace:*",
@@ -21,17 +21,17 @@
     "@launch/design-tokens": "workspace:*",
     "@launch/domain": "workspace:*",
     "@launch/ui-web": "workspace:*",
-    "clsx": "latest",
-    "convex": "latest",
-    "gray-matter": "latest",
-    "next": "latest",
-    "next-mdx-remote": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "zod": "latest"
+    "clsx": "^2.1.1",
+    "convex": "^1.45.0",
+    "gray-matter": "^4.0.3",
+    "next": "^16.1.6",
+    "next-mdx-remote": "^6.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
   }
 }

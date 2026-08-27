@@ -1,8 +1,9 @@
+// Imported from the built package: Expo's config loader transpiles only
+// this file, so plain `require` must be able to resolve the import —
+// workspace TS sources are not requireable here. Run `pnpm build` (or
+// `pnpm --filter @launch/config build`) once after cloning.
+import { productConfig } from "@launch/config/product";
 import type { ExpoConfig } from "expo/config";
-
-// Imported from source (not the built package) so `expo start` works
-// without building workspace packages first.
-import { productConfig } from "../../packages/config/src/product";
 
 const config: ExpoConfig = {
   name: productConfig.name,

@@ -8,11 +8,6 @@ const emptyToUndefined = (value: string | undefined) => {
   return value;
 };
 
-const publicBoolean = z
-  .string()
-  .optional()
-  .transform((value) => value === "true");
-
 const optionalInteger = z
   .union([z.number(), z.string()])
   .optional()
@@ -47,7 +42,6 @@ export const productEnvSchema = z.object({
   EXPO_PUBLIC_SENTRY_DSN: z.string().optional(),
   EXPO_PUBLIC_REVENUECAT_APPLE_KEY: z.string().optional(),
   EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY: z.string().optional(),
-  EXPO_PUBLIC_ENABLE_MOCKS: publicBoolean.optional(),
 });
 
 export const webEnvSchema = z.object({

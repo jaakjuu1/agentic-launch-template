@@ -4,6 +4,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
+      "convex": ["./node_modules/convex/dist/esm-types/index.d.ts"],
+      "convex/*": ["./node_modules/convex/dist/esm-types/*/index.d.ts"],
       "@launch/ai": ["../../packages/ai/src/index.ts"],
       "@launch/analytics": ["../../packages/analytics/src/index.ts"],
       "@launch/auth": ["../../packages/auth/src/index.ts"],

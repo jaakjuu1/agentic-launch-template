@@ -7,12 +7,10 @@ describe("config parsers", () => {
     const parsed = parseProductEnv({
       EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: "",
       EXPO_PUBLIC_CONVEX_URL: "",
-      EXPO_PUBLIC_ENABLE_MOCKS: "true",
     });
 
     expect(parsed.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY).toBeUndefined();
     expect(parsed.EXPO_PUBLIC_CONVEX_URL).toBeUndefined();
-    expect(parsed.EXPO_PUBLIC_ENABLE_MOCKS).toBe(true);
   });
 
   it("accepts optional web provider secrets when unset", () => {

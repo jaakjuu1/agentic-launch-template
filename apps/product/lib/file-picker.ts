@@ -6,7 +6,10 @@ export type PickedLaunchFile = {
   fileName: string;
   mimeType: string;
   sizeBytes: number;
+  /** Native file URI (document/image pickers). Absent on web. */
   uri?: string;
+  /** The browser File object when picked on web — uploaded directly. */
+  webFile?: File;
 };
 
 function pickWebFile(accept: string) {
@@ -29,6 +32,7 @@ function pickWebFile(accept: string) {
         fileName: file.name,
         mimeType: file.type || "application/octet-stream",
         sizeBytes: file.size,
+        webFile: file,
       });
     };
     input.click();

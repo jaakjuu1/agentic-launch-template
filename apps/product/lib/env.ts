@@ -10,5 +10,4 @@ export const productEnv = parseProductEnv({
     process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY,
   EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY:
     process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY,
-  EXPO_PUBLIC_ENABLE_MOCKS: process.env.EXPO_PUBLIC_ENABLE_MOCKS,
 });

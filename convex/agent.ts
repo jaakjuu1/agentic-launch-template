@@ -1,20 +1,30 @@
 import { Agent, createTool, listUIMessages } from "@convex-dev/agent";
 import { productConfig } from "@launch/config/product";
-import { paginationOptsValidator } from "convex/server";
+import {
+  type FunctionReference,
+  type FunctionReturnType,
+  paginationOptsValidator,
+} from "convex/server";
 import { v } from "convex/values";
 import { z } from "zod";
 import { components, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import {
-  action,
-  internalQuery,
-  mutation,
-  type QueryCtx,
-  query,
-} from "./_generated/server";
+import { action, internalQuery, mutation, query } from "./_generated/server";
 
 import { resolveChatModel } from "./lib/ai";
 import { getViewerIdentity } from "./lib/auth";
+
+/**
+ * Minimal structural runQuery type so helpers accept both the app's ctx
+ * objects and @convex-dev/agent's ToolCtx (whose bundled convex types may
+ * lag the workspace convex version).
+ */
+type RunQuery = <
+  Query extends FunctionReference<"query", "public" | "internal">,
+>(
+  query: Query,
+  args: Query["_args"],
+) => Promise<FunctionReturnType<Query>>;
 
 /**
  * Resolve the calling user's profile from inside an agent tool handler.
@@ -23,7 +33,7 @@ import { getViewerIdentity } from "./lib/auth";
  */
 async function resolveToolProfile(ctx: {
   userId?: string | null;
-  runQuery: QueryCtx["runQuery"];
+  runQuery: RunQuery;
 }): Promise<Doc<"profiles">> {
   if (!ctx.userId) {
     throw new Error("Tools require a user context");
@@ -151,7 +161,7 @@ type ThreadMetadata = {
 
 async function assertViewerOwnsThread(
   ctx: {
-    runQuery: QueryCtx["runQuery"];
+    runQuery: RunQuery;
   },
   threadId: string,
   clerkUserId: string,

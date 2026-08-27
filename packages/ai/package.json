@@ -20,6 +20,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.57",
     "@ai-sdk/provider-utils": "^3.0.7",
+    "@launch/config": "workspace:*",
     "@launch/domain": "workspace:*",
     "@openai/agents": "latest",
     "@openai/agents-openai": "latest",

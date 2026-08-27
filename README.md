@@ -1,53 +1,87 @@
 # Agentic Launch Template
 
-Reusable monorepo starter for consumer AI products built with Expo, Next.js, Convex, Clerk, Stripe + RevenueCat, and an agent-ready AI stack.
+A production-oriented monorepo template for shipping consumer **AI agent
+apps** fast: clone it, run one script, follow the roadmap, launch.
+
+**Stack:** Expo (iOS/Android/web) · Next.js (marketing + operator
+console) · Convex (data, durable agent workflows, webhooks, crons) ·
+Clerk (auth) · Stripe + RevenueCat (hybrid billing) · Cloudflare R2
+(private file storage with retrieval pipeline) · Vercel AI SDK +
+Convex Agent (persistent assistant with tools and human-in-the-loop
+approvals).
+
+## Start a new product
+
+```bash
+git clone <this-repo> my-product && cd my-product
+corepack pnpm install
+corepack pnpm new-product        # name, slug, bundle id, company → one config file
+corepack pnpm dev                # runs immediately in offline demo mode
+```
+
+Then work through **[docs/ROADMAP.md](docs/ROADMAP.md)** — the phase-by-
+phase path from idea to app-store launch. Define the product first in
+**[docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md)**; if you build with
+Claude Code or another AI agent, `CLAUDE.md` teaches it this repo's
+commands, invariants, and extension recipes.
+
+## What you get working out of the box
+
+- **A real assistant**: persistent threads (Convex Agent component),
+  tool calls that queue durable background workflows, and an approval
+  gate that routes risky actions to a human decision.
+- **Secure defaults**: Clerk-validated identities, profile-based roles
+  (operator access via the Clerk `app:role` claim), ownership checks on
+  every user-scoped row, signature-verified + deduped webhooks, and an
+  explicit `DEMO_MODE` flag instead of silent auth fallbacks.
+- **Billing that syncs itself**: Stripe and RevenueCat webhooks upsert
+  entitlements idempotently; `packages/billing` merges tiers across
+  sources.
+- **Files done right**: presigned R2 uploads with quota enforcement
+  (re-checked against real uploaded size), text extraction → chunking →
+  embeddings, signed downloads, GDPR-grade deletion cascades.
+- **Ops**: role-gated operator console (support queue, failed workflows,
+  storage activity), audit log, cron cleanup, weekly digest fan-out.
+- **Rails**: CI (lint, typecheck, tests, builds, Playwright e2e), EAS
+  build channels, strict TS, Biome.
+
+## Progressive modes
+
+The template runs at every configuration level, so day one is never
+blocked on dashboards:
+
+| Mode | Requirements | You get |
+|---|---|---|
+| Offline demo | nothing | apps render with fixture data |
+| Live demo | Convex deployment + `DEMO_MODE=true` | real backend, anonymous shared viewer |
+| Full | + Clerk (+ OpenAI, R2, billing keys) | real accounts, real AI, real billing |
 
 ## Workspace
 
-- `apps/product`: Expo + React Native + Expo Router product app for iOS, Android, and web.
-- `apps/web`: Next.js marketing, docs, pricing, support, and operator/admin surfaces.
-- `convex`: backend schema, workflows, webhooks, and AI-adjacent state orchestration.
-- `packages/*`: shared contracts, adapters, tokens, and UI primitives.
-- `packages/storage`: Cloudflare R2 helpers, upload policy, and backend-only storage adapter code.
-
-## Core flows
-
-- Clerk-backed auth across mobile, web, and operator surfaces
-- Hybrid entitlements merged from Stripe web billing and RevenueCat mobile billing
-- Convex-backed goals, projects, artifacts, notifications, approvals, and support flows
-- Private Cloudflare R2 file storage with signed uploads, signed downloads, and file-indexing hooks
-- Vercel AI SDK UI layer with a Convex-persisted agent/workflow model and optional OpenAI Agents orchestration
+```
+apps/product     Expo app (dashboard, assistant, projects, notifications,
+                 paywall, settings, support)
+apps/web         Next.js marketing site + /operator console
+convex/          backend: schema, auth, agent, workflows, webhooks, crons,
+                 storage, operator API
+packages/        config (product identity + env schemas), domain, billing,
+                 auth, storage, ai, analytics, design-tokens, ui-web, ui-native
+docs/            ROADMAP · PRODUCT_SPEC · architecture · integrations
+scripts/         new-product rebranding script
+```
 
 ## Commands
 
 ```bash
-corepack pnpm install
-corepack pnpm dev
-corepack pnpm build
-corepack pnpm test
-corepack pnpm test:e2e
+corepack pnpm dev / build / typecheck / test / test:e2e / format
+corepack pnpm --filter @launch/convex dev   # create/link a Convex deployment
+corepack pnpm codegen                       # regen convex/_generated after schema changes
 ```
 
-Run `corepack pnpm codegen` after you have linked a Convex deployment with `corepack pnpm --filter @launch/convex dev`.
+## Documentation
 
-## Environment
-
-Copy the example env files before running local development:
-
-- `.env.example`
-- `apps/product/.env.example`
-- `apps/web/.env.example`
-- `convex/.env.example`
-- Configure R2 CORS for your product and operator web origins before enabling live uploads.
-
-## Release rails
-
-- `eas.json` ships `development`, `preview`, and `production` channels for Expo builds.
-- `.github/workflows/ci.yml` runs install, typecheck, unit/integration tests, and production builds on every push and pull request.
-- `playwright.config.ts` and `tests/e2e` provide a browser smoke-test harness for the public web surface.
-
-## Reference product
-
-- Individual-user AI productivity companion with goals, projects, generated artifacts, approvals, notifications, billing, and support.
-- Durable agent threads, tool runs, approvals, and workflow state live in Convex and are shared across the Expo app and Next.js operator/admin surfaces.
-- Stored files, attachment links, and generated artifact exports are modeled as first-class Convex records backed by Cloudflare R2.
+- [docs/ROADMAP.md](docs/ROADMAP.md) — idea → launch, with checklists
+- [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) — the product definition template
+- [docs/architecture.md](docs/architecture.md) — how the pieces fit, security model
+- [docs/integrations.md](docs/integrations.md) — Clerk/Stripe/RevenueCat/R2/OpenAI setup, exact steps
+- [CLAUDE.md](CLAUDE.md) — AI-agent development guide for this repo

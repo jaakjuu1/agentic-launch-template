@@ -1,4 +1,6 @@
 import { openai } from "@ai-sdk/openai";
+import type { FlexibleSchema } from "@ai-sdk/provider-utils";
+import { productConfig } from "@launch/config/product";
 import {
   type AgentMessage,
   type ToolRun,
@@ -12,16 +14,30 @@ import {
   streamText,
   tool,
 } from "ai";
-import { z } from "zod";
 
-export const toolRequestSchema = z.object({
-  name: z.string().min(2),
-  description: z.string().min(3),
-  inputSchema: z.record(z.string(), z.unknown()),
-  sideEffect: z.boolean().default(false),
-});
+/**
+ * Server-side AI helpers shared outside the Convex runtime (scripts,
+ * Next.js route handlers). The Convex backend has its own thin wrapper
+ * in convex/lib/ai.ts so it can read deployment env vars — keep model
+ * defaults in sync by resolving through the product config here too.
+ */
 
-export type ToolRequest = z.infer<typeof toolRequestSchema>;
+export const toolRequestMetadataKeys = [
+  "name",
+  "description",
+  "sideEffect",
+] as const;
+
+export type ToolRequest = {
+  name: string;
+  description: string;
+  /**
+   * Marks a tool whose execution changes the outside world. Callers must
+   * route such tools through the approvals flow (see convex/agent.ts
+   * riskyApprovalTool) rather than executing directly.
+   */
+  sideEffect: boolean;
+};
 
 export type UiChatContext = {
   model?: string;
@@ -29,8 +45,12 @@ export type UiChatContext = {
   messages: Pick<AgentMessage, "role" | "content">[];
 };
 
-export function resolveBaseModel(model = "gpt-5-mini"): LanguageModel {
-  return openai.chat(model);
+export function resolveModelId(model?: string): string {
+  return model ?? process.env.AI_MODEL ?? productConfig.agent.defaultModel;
+}
+
+export function resolveBaseModel(model?: string): LanguageModel {
+  return openai.chat(resolveModelId(model));
 }
 
 function toModelMessages(messages: UiChatContext["messages"]): ModelMessage[] {
@@ -75,13 +95,19 @@ export function createStream(context: UiChatContext) {
   });
 }
 
-export function createAuditedTool(
+/**
+ * Wrap an execute function as an AI SDK tool with a real zod schema.
+ * `definition.sideEffect` is metadata for the caller: side-effectful
+ * tools belong behind an approval gate.
+ */
+export function createAuditedTool<Input>(
   definition: ToolRequest,
-  execute: (input: unknown) => Promise<unknown>,
+  inputSchema: FlexibleSchema<Input>,
+  execute: (input: Input) => Promise<unknown>,
 ) {
   return tool({
     description: definition.description,
-    inputSchema: z.object(definition.inputSchema),
+    inputSchema,
     execute,
   });
 }
@@ -89,10 +115,11 @@ export function createAuditedTool(
 export async function runOrchestratedTask(input: {
   instructions: string;
   handoffAgentName?: string;
+  model?: string;
 }) {
   const agent = new Agent({
     instructions: input.instructions,
-    model: "gpt-5",
+    model: resolveModelId(input.model),
     name: input.handoffAgentName ?? "planner",
   });
 
@@ -100,9 +127,9 @@ export async function runOrchestratedTask(input: {
 }
 
 export function toAuditTrail(toolRuns: readonly ToolRun[]) {
-  return toolRuns.map((run) => ({
-    id: run.id,
-    status: toolRunStatusSchema.parse(run.status),
-    summary: `${run.toolName}: ${run.description}`,
+  return toolRuns.map((toolRun) => ({
+    id: toolRun.id,
+    status: toolRunStatusSchema.parse(toolRun.status),
+    summary: `${toolRun.toolName}: ${toolRun.description}`,
   }));
 }

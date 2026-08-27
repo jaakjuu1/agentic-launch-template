@@ -28,5 +28,14 @@
     "convex-helpers": "latest",
     "pdf-parse": "^1.1.1",
     "zod": "latest"
+  },
+  "exports": {
+    "./_generated/api": {
+      "types": "./_generated/api.d.ts",
+      "default": "./_generated/api.js"
+    },
+    "./_generated/dataModel": {
+      "types": "./_generated/dataModel.d.ts"
+    }
   }
 }

@@ -62,8 +62,11 @@ export const webEnvSchema = z.object({
 });
 
 export const convexEnvSchema = z.object({
+  AI_EMBEDDING_MODEL: z.string().optional(),
+  AI_MODEL: z.string().optional(),
   CLERK_JWT_ISSUER_DOMAIN: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),
+  DEMO_MODE: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   POSTHOG_PROJECT_API_KEY: z.string().optional(),
   R2_ACCOUNT_ID: z.string().optional(),
@@ -75,7 +78,8 @@ export const convexEnvSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_UPLOAD_URL_TTL_SECONDS: z.number().int().positive().optional(),
   RESEND_API_KEY: z.string().optional(),
-  REVENUECAT_WEBHOOK_SECRET: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
+  REVENUECAT_WEBHOOK_AUTH_TOKEN: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
@@ -118,8 +122,11 @@ export function parseWebEnv(env: Record<string, string | undefined>) {
 export function parseConvexEnv(env: Record<string, string | undefined>) {
   return convexEnvSchema.parse({
     ...env,
+    AI_EMBEDDING_MODEL: emptyToUndefined(env.AI_EMBEDDING_MODEL),
+    AI_MODEL: emptyToUndefined(env.AI_MODEL),
     CLERK_JWT_ISSUER_DOMAIN: emptyToUndefined(env.CLERK_JWT_ISSUER_DOMAIN),
     CLERK_WEBHOOK_SECRET: emptyToUndefined(env.CLERK_WEBHOOK_SECRET),
+    DEMO_MODE: emptyToUndefined(env.DEMO_MODE),
     OPENAI_API_KEY: emptyToUndefined(env.OPENAI_API_KEY),
     POSTHOG_PROJECT_API_KEY: emptyToUndefined(env.POSTHOG_PROJECT_API_KEY),
     R2_ACCOUNT_ID: emptyToUndefined(env.R2_ACCOUNT_ID),
@@ -135,7 +142,10 @@ export function parseConvexEnv(env: Record<string, string | undefined>) {
       env.R2_UPLOAD_URL_TTL_SECONDS,
     ),
     RESEND_API_KEY: emptyToUndefined(env.RESEND_API_KEY),
-    REVENUECAT_WEBHOOK_SECRET: emptyToUndefined(env.REVENUECAT_WEBHOOK_SECRET),
+    RESEND_WEBHOOK_SECRET: emptyToUndefined(env.RESEND_WEBHOOK_SECRET),
+    REVENUECAT_WEBHOOK_AUTH_TOKEN: emptyToUndefined(
+      env.REVENUECAT_WEBHOOK_AUTH_TOKEN,
+    ),
     SENTRY_DSN: emptyToUndefined(env.SENTRY_DSN),
     STRIPE_SECRET_KEY: emptyToUndefined(env.STRIPE_SECRET_KEY),
     STRIPE_WEBHOOK_SECRET: emptyToUndefined(env.STRIPE_WEBHOOK_SECRET),

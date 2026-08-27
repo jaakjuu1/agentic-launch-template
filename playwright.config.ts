@@ -14,7 +14,11 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: "pnpm --filter @launch/web dev",
+        // CI runs the production build (pnpm build precedes test:e2e);
+        // local runs use the dev server for iteration speed.
+        command: process.env.CI
+          ? "pnpm --filter @launch/web start"
+          : "pnpm --filter @launch/web dev",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         url: baseURL,

@@ -26,6 +26,7 @@ import type * as lib_storage from "../lib/storage.js";
 import type * as lib_time from "../lib/time.js";
 import type * as lib_webhooks from "../lib/webhooks.js";
 import type * as notifications from "../notifications.js";
+import type * as operator from "../operator.js";
 import type * as profiles from "../profiles.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   "lib/time": typeof lib_time;
   "lib/webhooks": typeof lib_webhooks;
   notifications: typeof notifications;
+  operator: typeof operator;
   profiles: typeof profiles;
   projects: typeof projects;
   seed: typeof seed;

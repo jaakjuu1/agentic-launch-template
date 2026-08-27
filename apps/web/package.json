@@ -17,6 +17,7 @@
     "@launch/auth": "workspace:*",
     "@launch/billing": "workspace:*",
     "@launch/config": "workspace:*",
+    "@launch/convex": "workspace:*",
     "@launch/design-tokens": "workspace:*",
     "@launch/domain": "workspace:*",
     "@launch/ui-web": "workspace:*",

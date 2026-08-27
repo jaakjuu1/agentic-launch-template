@@ -8,6 +8,7 @@
       "@launch/auth": ["../packages/auth/src/index.ts"],
       "@launch/billing": ["../packages/billing/src/index.ts"],
       "@launch/config": ["../packages/config/src/index.ts"],
+      "@launch/config/product": ["../packages/config/src/product.ts"],
       "@launch/design-tokens": ["../packages/design-tokens/src/index.ts"],
       "@launch/domain": ["../packages/domain/src/index.ts"],
       "@launch/storage": ["../packages/storage/src/index.ts"],

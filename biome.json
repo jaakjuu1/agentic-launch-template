@@ -19,7 +19,15 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!!**/dist", "!!**/.expo", "!!**/.next", "!!**/coverage"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/.expo",
+      "!!**/.next",
+      "!!**/.turbo",
+      "!!**/coverage",
+      "!!**/.convex-tmp"
+    ]
   },
   "javascript": {
     "formatter": {

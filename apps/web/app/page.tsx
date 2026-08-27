@@ -5,7 +5,7 @@ import { SiteShell } from "@/components/site-shell";
 import { getMarketingData } from "@/lib/content";
 
 export default async function HomePage() {
-  const { latestChangelog, productPillars, statBlocks } =
+  const { hero, latestChangelog, productPillars, statBlocks } =
     await getMarketingData();
 
   return (
@@ -20,23 +20,21 @@ export default async function HomePage() {
               textTransform: "uppercase",
             }}
           >
-            Agentic-proof launch template
+            {hero.name}
           </div>
           <h1
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(3rem, 6vw, 5rem)",
-              lineHeight: 0.94,
+              fontSize: "clamp(2.4rem, 5vw, 4rem)",
+              lineHeight: 1.02,
               marginBottom: 16,
               marginTop: 18,
             }}
           >
-            Build the app you wish existed before the idea arrived.
+            {hero.tagline}
           </h1>
           <p style={{ fontSize: 18, lineHeight: 1.7, maxWidth: 720 }}>
-            This starter gives you an Expo product app, a public Next.js site,
-            an operator surface, Convex workflows, and AI boundaries that
-            survive real production pressure.
+            {hero.description}
           </p>
           <div
             style={{
@@ -46,7 +44,7 @@ export default async function HomePage() {
               marginTop: 24,
             }}
           >
-            <HeroButton href="/docs">Read setup docs</HeroButton>
+            <HeroButton href={hero.docsUrl}>Read setup docs</HeroButton>
             <HeroButton href="/operator" tone="secondary">
               Explore operator console
             </HeroButton>

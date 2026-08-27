@@ -73,6 +73,85 @@ body {
   margin-top: 24px;
 }
 
+.footer-row {
+  border-top: 1px solid rgba(22, 32, 42, 0.08);
+  color: var(--launch-color-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 20px;
+}
+
+.pill-badge {
+  border-radius: var(--launch-radius-pill);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 6px 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill-badge--accent {
+  background: rgba(255, 107, 53, 0.12);
+  color: var(--launch-color-warning);
+}
+
+.pill-badge--neutral {
+  background: rgba(22, 32, 42, 0.07);
+  color: var(--launch-color-ink);
+}
+
+.pill-badge--success {
+  background: rgba(27, 127, 91, 0.12);
+  color: var(--launch-color-success);
+}
+
+.pill-badge--danger {
+  background: rgba(184, 32, 32, 0.1);
+  color: #b82020;
+}
+
+.row-item {
+  border: 1px solid rgba(22, 32, 42, 0.08);
+  border-radius: 20px;
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.row-item-head {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.console-action {
+  background: transparent;
+  border: 1px solid rgba(22, 32, 42, 0.14);
+  border-radius: var(--launch-radius-pill);
+  color: var(--launch-color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.console-action:hover {
+  background: rgba(22, 32, 42, 0.05);
+}
+
+.console-action:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 @media (max-width: 960px) {
   .hero-grid,
   .operator-grid {

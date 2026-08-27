@@ -1,23 +1,29 @@
+import { productConfig } from "@launch/config/product";
 import { SurfaceCard } from "@launch/ui-web";
 
 import { SiteShell } from "@/components/site-shell";
 
-const sections = [
-  {
-    title: "Privacy posture",
-    body: "Analytics, push, billing, and AI features are designed to remain auditable. Sensitive actions are approval-gated and user data export or deletion flows stay explicit.",
-  },
-  {
-    title: "Store compliance",
-    body: "The template includes restore-purchase surfaces, permission copy, support entry points, and legal placeholders so mobile launches do not stall on avoidable review issues.",
-  },
-  {
-    title: "Operator controls",
-    body: "Admin access is separated from consumer roles, and risky actions are routed through explicit backend tool boundaries instead of prompt-only behavior.",
-  },
-];
-
 export default function LegalPage() {
+  const { legalName, supportEmail } = productConfig.company;
+
+  // Placeholder legal copy parameterized by the product config. These are
+  // TEMPLATES: have counsel produce real terms, privacy policy, and any
+  // region-specific notices before launch.
+  const sections = [
+    {
+      title: "Terms of Service (template)",
+      body: `${productConfig.name} is operated by ${legalName}. By creating an account you agree to use the service lawfully and accept that ${legalName} may suspend accounts that abuse the platform. Replace this placeholder with terms reviewed by your counsel before launch.`,
+    },
+    {
+      title: "Privacy Policy (template)",
+      body: `${legalName} stores the account details, content, and support requests you submit in order to provide the service. Analytics and marketing consent are opt-in, and you can request export or deletion of your data by contacting ${supportEmail}. Replace this placeholder with a full policy covering your actual processors, retention windows, and regional disclosures (GDPR, CCPA, and similar).`,
+    },
+    {
+      title: "Subprocessors and data handling (template)",
+      body: `The template stack processes data through Clerk (authentication), Convex (application data), Cloudflare R2 (file storage), Stripe and RevenueCat (billing), and an AI model provider for assistant features. Before launch, ${legalName} should publish a current subprocessor list and sign data processing agreements where required.`,
+    },
+  ];
+
   return (
     <SiteShell>
       <section className="stack">
@@ -36,20 +42,23 @@ export default function LegalPage() {
               fontFamily: "var(--font-display)",
               fontSize: 48,
               lineHeight: 1,
+              margin: 0,
             }}
           >
-            Replace the placeholders before launch.
+            Legal templates for {legalName}
           </h1>
           <p
             style={{
               color: "var(--launch-color-muted)",
               fontSize: 18,
               lineHeight: 1.7,
+              margin: 0,
             }}
           >
-            This page is intentionally product-ready but generic. Swap in your
-            privacy policy, terms, DPA references, and region-specific notices
-            before shipping.
+            Everything on this page is placeholder text generated from the
+            product config — it is not legal advice and has not been reviewed by
+            a lawyer. Swap in your real terms, privacy policy, DPA references,
+            and region-specific notices before shipping.
           </p>
         </SurfaceCard>
         {sections.map((section) => (

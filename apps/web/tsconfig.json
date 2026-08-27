@@ -9,6 +9,10 @@
     ],
     "paths": {
       "@/*": ["./*"],
+      // Typed facade over the generated Convex API — see the header
+      // comment in lib/convex-generated-api.ts for why. Runtime behavior
+      // is identical (both export Convex's anyApi proxy).
+      "@launch/convex/_generated/api": ["./lib/convex-generated-api.ts"],
       "@launch/ai": ["../../packages/ai/src/index.ts"],
       "@launch/analytics": ["../../packages/analytics/src/index.ts"],
       "@launch/auth": ["../../packages/auth/src/index.ts"],

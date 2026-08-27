@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { productConfig } from "@launch/config/product";
 import matter from "gray-matter";
 import { cache } from "react";
 
@@ -46,6 +47,15 @@ export const getChangelogEntry = cache(async () => {
 export async function getMarketingData() {
   const latestChangelog = await getChangelogEntry();
 
+  // Hero copy is driven entirely by the product config so a rebrand
+  // (editing packages/config/src/product.ts) rebrands the homepage too.
+  const hero = {
+    name: productConfig.name,
+    tagline: productConfig.tagline,
+    description: productConfig.description,
+    docsUrl: productConfig.urls.docs,
+  };
+
   const statBlocks = [
     { label: "Time to launch", value: "days, not months" },
     { label: "State model", value: "reactive + durable" },
@@ -59,5 +69,5 @@ export async function getMarketingData() {
     "AI SDK UI layer plus Convex Agent persistence and configurable models",
   ];
 
-  return { latestChangelog, productPillars, statBlocks };
+  return { hero, latestChangelog, productPillars, statBlocks };
 }

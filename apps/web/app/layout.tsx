@@ -1,5 +1,7 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import { productConfig } from "@launch/config/product";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 import "./globals.css";
 
@@ -14,12 +16,14 @@ export const metadata: Metadata = {
   description: productConfig.tagline,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
+// The app must build and run with no env vars set (fresh template clones,
+// CI smoke builds). ClerkProvider throws without a publishable key, so we
+// only mount it when the key exists; the rest of the tree is Clerk-free
+// until then.
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  const shell = (
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,5 +36,15 @@ export default function RootLayout({
       </head>
       <body>{children}</body>
     </html>
+  );
+
+  if (!clerkPublishableKey) {
+    return shell;
+  }
+
+  return (
+    <ClerkProvider publishableKey={clerkPublishableKey} signInUrl="/sign-in">
+      {shell}
+    </ClerkProvider>
   );
 }

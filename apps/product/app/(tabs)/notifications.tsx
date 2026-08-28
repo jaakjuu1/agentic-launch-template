@@ -1,17 +1,26 @@
 import { api } from "@launch/convex/_generated/api";
 import {
   AppScreen,
-  PrimaryButton,
-  SectionCard,
-  StatusPill,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  cn,
+  Text,
 } from "@launch/ui-native";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { ScreenBoundary } from "@/components/screen-boundary";
-import { EmptyText, ErrorText, LoadingCard } from "@/components/status-blocks";
+import {
+  EmptyText,
+  ErrorText,
+  LoadingCard,
+  StatusBadge,
+} from "@/components/status-blocks";
 import { useAppMode } from "@/lib/app-mode";
 import { getErrorMessage } from "@/lib/errors";
 import { referenceNotifications } from "@/lib/reference-data";
@@ -45,27 +54,26 @@ function NotificationRow({ notification }: { notification: NotificationDoc }) {
   };
 
   return (
-    <View
-      className={`rounded-[20px] border p-4 ${
-        unread
-          ? "border-[#ff6b35]/40 bg-white"
-          : "border-[#16202a]/10 bg-white/60"
-      }`}
+    <Card
+      className={cn(
+        "gap-0 rounded-2xl p-4",
+        unread ? "border-primary/40 bg-popover" : "bg-popover/60",
+      )}
     >
       <View className="flex-row items-center justify-between gap-3">
         <Text
-          className={`flex-1 text-lg text-[#16202a] ${
+          className={`flex-1 text-lg text-foreground ${
             unread ? "font-semibold" : "font-medium"
           }`}
         >
           {notification.title}
         </Text>
-        <StatusPill
+        <StatusBadge
           label={unread ? "unread" : notification.channel}
           tone={unread ? "warning" : "neutral"}
         />
       </View>
-      <Text className="mt-2 text-base leading-7 text-[#5f6772]">
+      <Text className="mt-2 text-base leading-7 text-muted-foreground">
         {notification.body}
       </Text>
       {unread ? (
@@ -74,13 +82,13 @@ function NotificationRow({ notification }: { notification: NotificationDoc }) {
           disabled={pending}
           onPress={() => void markRead()}
         >
-          <Text className="text-sm font-semibold text-[#16202a]">
+          <Text className="text-sm font-semibold text-foreground">
             {pending ? "Marking…" : "Mark as read"}
           </Text>
         </Pressable>
       ) : null}
       <ErrorText message={error} />
-    </View>
+    </Card>
   );
 }
 
@@ -123,62 +131,76 @@ function LiveNotifications() {
   };
 
   return (
-    <SectionCard
-      eyebrow="Inbox"
-      title={
-        unreadCount === 0
-          ? "You're all caught up"
-          : `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
-      }
-    >
-      {unreadCount > 0 ? (
-        <PrimaryButton
-          label={pending ? "Marking all…" : "Mark all read"}
-          onPress={() => void markAll()}
-        />
-      ) : null}
-      <ErrorText message={error} />
-      {sorted.length === 0 ? (
-        <EmptyText message="No notifications yet — workflow completions and approvals will land here." />
-      ) : (
-        <View className="gap-3">
-          {sorted.map((notification) => (
-            <NotificationRow
-              key={notification._id}
-              notification={notification}
-            />
-          ))}
-        </View>
-      )}
-    </SectionCard>
+    <Card className="gap-3 rounded-3xl py-5">
+      <CardHeader className="gap-3 px-5">
+        <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+          Inbox
+        </Text>
+        <CardTitle className="text-[28px] leading-tight">
+          {unreadCount === 0
+            ? "You're all caught up"
+            : `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="gap-3 px-5">
+        {unreadCount > 0 ? (
+          <Button className="rounded-full" onPress={() => void markAll()}>
+            <Text>{pending ? "Marking all…" : "Mark all read"}</Text>
+          </Button>
+        ) : null}
+        <ErrorText message={error} />
+        {sorted.length === 0 ? (
+          <EmptyText message="No notifications yet — workflow completions and approvals will land here." />
+        ) : (
+          <View className="gap-3">
+            {sorted.map((notification) => (
+              <NotificationRow
+                key={notification._id}
+                notification={notification}
+              />
+            ))}
+          </View>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 function OfflineNotifications() {
   return (
-    <SectionCard
-      eyebrow="Inbox"
-      title="Push, email, and in-app state stay aligned"
-    >
-      <View className="gap-3">
-        {referenceNotifications.map((notification) => (
-          <View
-            key={notification.id}
-            className="rounded-[20px] border border-[#16202a]/10 bg-white/80 p-4"
-          >
-            <View className="flex-row items-center justify-between gap-3">
-              <Text className="flex-1 text-lg font-semibold text-[#16202a]">
-                {notification.title}
+    <Card className="gap-3 rounded-3xl py-5">
+      <CardHeader className="gap-3 px-5">
+        <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+          Inbox
+        </Text>
+        <CardTitle className="text-[28px] leading-tight">
+          Push, email, and in-app state stay aligned
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="gap-3 px-5">
+        <View className="gap-3">
+          {referenceNotifications.map((notification) => (
+            <Card
+              key={notification.id}
+              className="gap-0 rounded-2xl bg-popover/80 p-4"
+            >
+              <View className="flex-row items-center justify-between gap-3">
+                <Text className="flex-1 text-lg font-semibold text-foreground">
+                  {notification.title}
+                </Text>
+                <StatusBadge
+                  label={notification.tone}
+                  tone={notification.tone}
+                />
+              </View>
+              <Text className="mt-2 text-base leading-7 text-muted-foreground">
+                {notification.body}
               </Text>
-              <StatusPill label={notification.tone} tone={notification.tone} />
-            </View>
-            <Text className="mt-2 text-base leading-7 text-[#5f6772]">
-              {notification.body}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </SectionCard>
+            </Card>
+          ))}
+        </View>
+      </CardContent>
+    </Card>
   );
 }
 

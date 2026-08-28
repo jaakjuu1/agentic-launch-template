@@ -3,17 +3,27 @@ import { api } from "@launch/convex/_generated/api";
 import { seedPreview } from "@launch/domain";
 import {
   AppScreen,
-  PrimaryButton,
-  SectionCard,
-  StatusPill,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Label,
+  Switch,
+  Text,
 } from "@launch/ui-native";
 import { useMutation, useQuery } from "convex/react";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Switch, Text, View } from "react-native";
+import { View } from "react-native";
 
 import { ScreenBoundary } from "@/components/screen-boundary";
-import { EmptyText, ErrorText, LoadingCard } from "@/components/status-blocks";
+import {
+  EmptyText,
+  ErrorText,
+  LoadingCard,
+  StatusBadge,
+} from "@/components/status-blocks";
 import { useAppMode } from "@/lib/app-mode";
 import { resolveActiveTier } from "@/lib/entitlements";
 import { getErrorMessage } from "@/lib/errors";
@@ -23,8 +33,8 @@ import { useLiveQueriesEnabled } from "@/lib/use-live-enabled";
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row items-center justify-between gap-3">
-      <Text className="text-sm text-[#5f6772]">{label}</Text>
-      <Text className="flex-1 text-right text-sm font-medium text-[#16202a]">
+      <Text className="text-sm text-muted-foreground">{label}</Text>
+      <Text className="flex-1 text-right text-sm font-medium text-foreground">
         {value}
       </Text>
     </View>
@@ -45,19 +55,17 @@ function ConsentSwitch({
   value: boolean;
 }) {
   return (
-    <View className="flex-row items-center justify-between gap-4 rounded-[20px] bg-white/80 p-4">
+    <View className="flex-row items-center justify-between gap-4 rounded-2xl bg-popover/80 p-4">
       <View className="flex-1">
-        <Text className="text-base font-semibold text-[#16202a]">{label}</Text>
-        <Text className="mt-1 text-sm leading-6 text-[#5f6772]">
+        <Label className="text-base font-semibold">{label}</Label>
+        <Text className="mt-1 text-sm leading-6 text-muted-foreground">
           {description}
         </Text>
       </View>
       <Switch
+        checked={value}
         disabled={disabled}
-        onValueChange={onChange}
-        thumbColor="#fffaf4"
-        trackColor={{ false: "#e6e1d8", true: "#ff6b35" }}
-        value={value}
+        onCheckedChange={(next) => onChange?.(next)}
       />
     </View>
   );
@@ -86,10 +94,9 @@ function SignOutRow() {
 
   return (
     <View className="gap-2">
-      <PrimaryButton
-        label={pending ? "Signing out…" : "Sign out"}
-        onPress={() => void handleSignOut()}
-      />
+      <Button className="rounded-full" onPress={() => void handleSignOut()}>
+        <Text>{pending ? "Signing out…" : "Sign out"}</Text>
+      </Button>
       <ErrorText message={error} />
     </View>
   );
@@ -150,8 +157,8 @@ function LiveSettings() {
 
   return (
     <>
-      <View className="gap-3 rounded-[20px] bg-white/80 p-4">
-        <Text className="text-lg font-semibold text-[#16202a]">Profile</Text>
+      <View className="gap-3 rounded-2xl bg-popover/80 p-4">
+        <Text className="text-lg font-semibold text-foreground">Profile</Text>
         {profile === null ? (
           <EmptyText message="Profile not created yet — it appears after the first sync with the backend." />
         ) : (
@@ -189,12 +196,12 @@ function LiveSettings() {
       />
       <ErrorText message={consentError} />
 
-      <View className="gap-3 rounded-[20px] bg-white/80 p-4">
+      <View className="gap-3 rounded-2xl bg-popover/80 p-4">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-lg font-semibold text-[#16202a]">
+          <Text className="text-lg font-semibold text-foreground">
             Entitlements
           </Text>
-          <StatusPill
+          <StatusBadge
             label={activeTier}
             tone={activeTier === "free" ? "neutral" : "success"}
           />
@@ -220,8 +227,8 @@ function LiveSettings() {
 function OfflineSettings() {
   return (
     <>
-      <View className="gap-3 rounded-[20px] bg-white/80 p-4">
-        <Text className="text-lg font-semibold text-[#16202a]">Profile</Text>
+      <View className="gap-3 rounded-2xl bg-popover/80 p-4">
+        <Text className="text-lg font-semibold text-foreground">Profile</Text>
         <View className="gap-2">
           <ProfileRow label="Name" value={seedPreview.profile.firstName} />
           <ProfileRow label="Email" value={seedPreview.profile.email} />
@@ -241,12 +248,15 @@ function OfflineSettings() {
         label="Marketing consent"
         value={seedPreview.profile.marketingConsent}
       />
-      <View className="gap-3 rounded-[20px] bg-white/80 p-4">
+      <View className="gap-3 rounded-2xl bg-popover/80 p-4">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-lg font-semibold text-[#16202a]">
+          <Text className="text-lg font-semibold text-foreground">
             Entitlements
           </Text>
-          <StatusPill label={referenceEntitlements.activeTier} tone="success" />
+          <StatusBadge
+            label={referenceEntitlements.activeTier}
+            tone="success"
+          />
         </View>
       </View>
       <EmptyText message="Offline demo — consents and entitlements become editable once a Convex deployment is configured." />
@@ -259,21 +269,31 @@ export default function SettingsScreen() {
 
   return (
     <AppScreen>
-      <SectionCard eyebrow="Settings" title="Account, consents, and plan">
-        {mode === "offline" ? (
-          <OfflineSettings />
-        ) : (
-          <ScreenBoundary>
-            <LiveSettings />
-          </ScreenBoundary>
-        )}
-        {mode === "clerk" ? <SignOutRow /> : null}
-        <Link href="/legal">
-          <Text className="text-sm font-medium text-[#16202a]">
-            Open legal + privacy copy
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Settings
           </Text>
-        </Link>
-      </SectionCard>
+          <CardTitle className="text-[28px] leading-tight">
+            Account, consents, and plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          {mode === "offline" ? (
+            <OfflineSettings />
+          ) : (
+            <ScreenBoundary>
+              <LiveSettings />
+            </ScreenBoundary>
+          )}
+          {mode === "clerk" ? <SignOutRow /> : null}
+          <Link href="/legal">
+            <Text className="text-sm font-medium text-foreground">
+              Open legal + privacy copy
+            </Text>
+          </Link>
+        </CardContent>
+      </Card>
     </AppScreen>
   );
 }

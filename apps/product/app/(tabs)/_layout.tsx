@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@launch/design-tokens";
 import { Redirect, Tabs } from "expo-router";
 
 import { useAppMode } from "@/lib/app-mode";
@@ -33,11 +34,11 @@ export default function TabsLayout() {
       {mode === "clerk" ? <ClerkAuthGuard /> : null}
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: "#16202a",
-          tabBarInactiveTintColor: "#7b838e",
+          tabBarActiveTintColor: colors.ink,
+          tabBarInactiveTintColor: colors.muted,
           tabBarStyle: {
-            backgroundColor: "#fffaf4",
-            borderTopColor: "rgba(22, 32, 42, 0.08)",
+            backgroundColor: colors.card,
+            borderTopColor: colors.border,
             height: 84,
             paddingTop: 8,
           },

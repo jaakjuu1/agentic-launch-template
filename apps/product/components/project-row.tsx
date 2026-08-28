@@ -1,5 +1,7 @@
-import { StatusPill } from "@launch/ui-native";
-import { Text, View } from "react-native";
+import { Card, Progress, Text } from "@launch/ui-native";
+import { View } from "react-native";
+
+import { StatusBadge } from "@/components/status-blocks";
 
 export function ProjectRow({
   name,
@@ -20,22 +22,21 @@ export function ProjectRow({
         : "neutral";
 
   return (
-    <View className="gap-3 rounded-[20px] border border-[#16202a]/10 bg-white/80 p-4">
+    <Card className="gap-3 rounded-2xl bg-popover/80 p-4">
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-[#16202a]">{name}</Text>
-          <Text className="mt-1 text-sm leading-6 text-[#5f6772]">
+          <Text className="text-lg font-semibold text-foreground">{name}</Text>
+          <Text className="mt-1 text-sm leading-6 text-muted-foreground">
             {summary}
           </Text>
         </View>
-        <StatusPill label={status} tone={tone} />
+        <StatusBadge label={status} tone={tone} />
       </View>
-      <View className="h-2 overflow-hidden rounded-full bg-[#e9dfd2]">
-        <View
-          className="h-full rounded-full bg-[#ff6b35]"
-          style={{ width: `${progress}%` }}
-        />
-      </View>
-    </View>
+      <Progress
+        className="bg-muted"
+        indicatorClassName="bg-primary"
+        value={progress}
+      />
+    </Card>
   );
 }

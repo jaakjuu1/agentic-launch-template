@@ -1,5 +1,6 @@
+import { Text } from "@launch/ui-native";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppMode } from "@/lib/app-mode";
@@ -24,10 +25,10 @@ export function ModeBanner() {
 
   return (
     <View
-      className="flex-row items-center justify-between gap-3 bg-[#16202a] px-5 pb-3"
+      className="flex-row items-center justify-between gap-3 bg-foreground px-5 pb-3"
       style={{ paddingTop: Math.max(insets.top, 12) }}
     >
-      <Text className="flex-1 text-xs font-medium leading-5 text-[#ffd4c7]">
+      <Text className="flex-1 text-xs font-medium leading-5 text-secondary">
         {bannerCopy[mode]}
       </Text>
       <Pressable
@@ -36,7 +37,7 @@ export function ModeBanner() {
         hitSlop={8}
         onPress={() => setDismissed(true)}
       >
-        <Text className="text-xs font-semibold uppercase tracking-[1.4px] text-[#fffaf4]">
+        <Text className="text-xs font-semibold uppercase tracking-[1.4px] text-primary-foreground">
           Dismiss
         </Text>
       </Pressable>

@@ -1,10 +1,19 @@
 import { api } from "@launch/convex/_generated/api";
 import type { Id } from "@launch/convex/_generated/dataModel";
-import { AppScreen, PrimaryButton, SectionCard } from "@launch/ui-native";
+import {
+  AppScreen,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Text,
+} from "@launch/ui-native";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { useDeferredValue, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { FileRow } from "@/components/file-row";
 import { ProjectRow } from "@/components/project-row";
@@ -29,9 +38,6 @@ import { useFileUpload } from "@/lib/use-file-upload";
 import { useLiveQueriesEnabled } from "@/lib/use-live-enabled";
 
 type ProjectDoc = FunctionReturnType<typeof api.projects.listProjects>[number];
-
-const inputClassName =
-  "rounded-[18px] border border-[#16202a]/10 bg-white px-4 py-3 text-base text-[#16202a]";
 
 function CreateProjectForm({
   onCreated,
@@ -68,26 +74,23 @@ function CreateProjectForm({
 
   return (
     <View className="gap-3">
-      <TextInput
-        className={inputClassName}
+      <Input
+        className="rounded-2xl"
         editable={!pending}
         onChangeText={setTitle}
         placeholder="Project title"
-        placeholderTextColor="#7b838e"
         value={title}
       />
-      <TextInput
-        className={inputClassName}
+      <Input
+        className="rounded-2xl"
         editable={!pending}
         onChangeText={setSummary}
         placeholder="One-line summary (optional)"
-        placeholderTextColor="#7b838e"
         value={summary}
       />
-      <PrimaryButton
-        label={pending ? "Creating…" : "Create project"}
-        onPress={() => void submit()}
-      />
+      <Button className="rounded-full" onPress={() => void submit()}>
+        <Text>{pending ? "Creating…" : "Create project"}</Text>
+      </Button>
       <ErrorText message={error} />
     </View>
   );
@@ -124,14 +127,18 @@ function ProjectAttachments({ projectId }: { projectId: Id<"projects"> }) {
   return (
     <View className="gap-3">
       <View className="flex-row flex-wrap gap-3">
-        <PrimaryButton
-          label="Attach document"
+        <Button
+          className="rounded-full"
           onPress={() => void attach(pickDocumentUpload)}
-        />
-        <PrimaryButton
-          label="Attach image"
+        >
+          <Text>Attach document</Text>
+        </Button>
+        <Button
+          className="rounded-full"
           onPress={() => void attach(pickImageUpload)}
-        />
+        >
+          <Text>Attach image</Text>
+        </Button>
       </View>
       <ErrorText message={attachError} />
       {inFlightUploads.map((upload) => (
@@ -176,79 +183,95 @@ function LiveProjects() {
 
   return (
     <>
-      <SectionCard eyebrow="Projects" title="Track shipping work and approvals">
-        <TextInput
-          className={inputClassName}
-          onChangeText={setQuery}
-          placeholder="Filter projects by name, summary, or tag"
-          placeholderTextColor="#7b838e"
-          value={query}
-        />
-        {filtered.length === 0 ? (
-          <EmptyText
-            message={
-              projects.length === 0
-                ? "No projects yet — create your first one below."
-                : "No projects match this filter."
-            }
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Projects
+          </Text>
+          <CardTitle className="text-[28px] leading-tight">
+            Track shipping work and approvals
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          <Input
+            className="rounded-2xl"
+            onChangeText={setQuery}
+            placeholder="Filter projects by name, summary, or tag"
+            value={query}
           />
-        ) : (
-          <View className="gap-3">
-            {filtered.map((project) => (
-              <Pressable
-                key={project._id}
-                onPress={() =>
-                  setSelectedId((current) =>
-                    current === project._id ? null : project._id,
-                  )
-                }
-              >
-                <View
-                  className={
-                    selectedId === project._id
-                      ? "rounded-[22px] border-2 border-[#ff6b35]"
-                      : "rounded-[22px] border-2 border-transparent"
+          {filtered.length === 0 ? (
+            <EmptyText
+              message={
+                projects.length === 0
+                  ? "No projects yet — create your first one below."
+                  : "No projects match this filter."
+              }
+            />
+          ) : (
+            <View className="gap-3">
+              {filtered.map((project) => (
+                <Pressable
+                  key={project._id}
+                  onPress={() =>
+                    setSelectedId((current) =>
+                      current === project._id ? null : project._id,
+                    )
                   }
                 >
-                  <ProjectRow
-                    name={project.name}
-                    progress={project.progressPercent}
-                    status={
-                      project.progressPercent >= 100 ? "Ready to QA" : "Active"
+                  <View
+                    className={
+                      selectedId === project._id
+                        ? "rounded-[22px] border-2 border-primary"
+                        : "rounded-[22px] border-2 border-transparent"
                     }
-                    summary={
-                      project.summary.length > 0
-                        ? project.summary
-                        : "No summary yet."
-                    }
-                  />
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        )}
-        <CreateProjectForm
-          onCreated={(projectId) => setSelectedId(projectId)}
-        />
-      </SectionCard>
-
-      <SectionCard
-        eyebrow="Files"
-        title={
-          selectedProject === null
-            ? "Project attachments"
-            : `Files · ${selectedProject.name}`
-        }
-      >
-        {selectedProject === null ? (
-          <EmptyText message="Tap a project above to attach and open its files." />
-        ) : (
-          <ProjectAttachments
-            key={selectedProject._id}
-            projectId={selectedProject._id}
+                  >
+                    <ProjectRow
+                      name={project.name}
+                      progress={project.progressPercent}
+                      status={
+                        project.progressPercent >= 100
+                          ? "Ready to QA"
+                          : "Active"
+                      }
+                      summary={
+                        project.summary.length > 0
+                          ? project.summary
+                          : "No summary yet."
+                      }
+                    />
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          <CreateProjectForm
+            onCreated={(projectId) => setSelectedId(projectId)}
           />
-        )}
-      </SectionCard>
+        </CardContent>
+      </Card>
+
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Files
+          </Text>
+          <CardTitle className="text-[28px] leading-tight">
+            {selectedProject === null
+              ? "Project attachments"
+              : `Files · ${selectedProject.name}`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          {selectedProject === null ? (
+            <EmptyText message="Tap a project above to attach and open its files." />
+          ) : (
+            <ProjectAttachments
+              key={selectedProject._id}
+              projectId={selectedProject._id}
+            />
+          )}
+        </CardContent>
+      </Card>
     </>
   );
 }
@@ -268,39 +291,50 @@ function OfflineProjects() {
   });
 
   return (
-    <SectionCard eyebrow="Projects" title="Track shipping work and approvals">
-      <TextInput
-        className={inputClassName}
-        onChangeText={setQuery}
-        placeholder="Filter projects, workflows, or statuses"
-        placeholderTextColor="#7b838e"
-        value={query}
-      />
-      <View className="gap-3">
-        {projects.map((project) => (
-          <ProjectRow
-            key={project.id}
-            name={project.name}
-            progress={project.progress}
-            status={project.status}
-            summary={project.summary}
-          />
-        ))}
-      </View>
-      <Text className="text-sm leading-6 text-[#7b838e]">
-        Sample attachments — connect Convex to upload real files.
-      </Text>
-      <View className="gap-3">
-        {[...referenceProjectFiles, ...referenceArtifactExports].map((file) => (
-          <FileRow
-            key={file.id}
-            detail={`${file.detail} · ${formatFileSize(file.sizeBytes)}`}
-            label={file.fileName}
-            status={file.status}
-          />
-        ))}
-      </View>
-    </SectionCard>
+    <Card className="gap-3 rounded-3xl py-5">
+      <CardHeader className="gap-3 px-5">
+        <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+          Projects
+        </Text>
+        <CardTitle className="text-[28px] leading-tight">
+          Track shipping work and approvals
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="gap-3 px-5">
+        <Input
+          className="rounded-2xl"
+          onChangeText={setQuery}
+          placeholder="Filter projects, workflows, or statuses"
+          value={query}
+        />
+        <View className="gap-3">
+          {projects.map((project) => (
+            <ProjectRow
+              key={project.id}
+              name={project.name}
+              progress={project.progress}
+              status={project.status}
+              summary={project.summary}
+            />
+          ))}
+        </View>
+        <Text className="text-sm leading-6 text-muted-foreground">
+          Sample attachments — connect Convex to upload real files.
+        </Text>
+        <View className="gap-3">
+          {[...referenceProjectFiles, ...referenceArtifactExports].map(
+            (file) => (
+              <FileRow
+                key={file.id}
+                detail={`${file.detail} · ${formatFileSize(file.sizeBytes)}`}
+                label={file.fileName}
+                status={file.status}
+              />
+            ),
+          )}
+        </View>
+      </CardContent>
+    </Card>
   );
 }
 

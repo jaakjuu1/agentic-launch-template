@@ -1,4 +1,5 @@
 import { SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { colors } from "@launch/design-tokens";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
@@ -17,8 +18,8 @@ export default function IndexScreen() {
   }
 
   return (
-    <View className="flex-1 items-center justify-center bg-[#f5efe6]">
-      <ActivityIndicator color="#ff6b35" size="large" />
+    <View className="flex-1 items-center justify-center bg-background">
+      <ActivityIndicator color={colors.accent} size="large" />
       <SignedIn>
         <Redirect href="/(tabs)" />
       </SignedIn>

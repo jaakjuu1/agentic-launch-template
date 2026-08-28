@@ -3,16 +3,21 @@ import { api } from "@launch/convex/_generated/api";
 import type { Id } from "@launch/convex/_generated/dataModel";
 import {
   AppScreen,
-  PrimaryButton,
-  SectionCard,
-  StatusPill,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Text,
+  Textarea,
 } from "@launch/ui-native";
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 
 import { ScreenBoundary } from "@/components/screen-boundary";
-import { EmptyText, ErrorText } from "@/components/status-blocks";
+import { EmptyText, ErrorText, StatusBadge } from "@/components/status-blocks";
 import { TargetFileRow } from "@/components/target-file-row";
 import { UploadRow } from "@/components/upload-row";
 import { useAppMode } from "@/lib/app-mode";
@@ -24,9 +29,6 @@ import {
 } from "@/lib/file-picker";
 import { useFileUpload } from "@/lib/use-file-upload";
 import { useLiveQueriesEnabled } from "@/lib/use-live-enabled";
-
-const inputClassName =
-  "rounded-[18px] border border-[#16202a]/10 bg-white px-4 py-3 text-base text-[#16202a]";
 
 /** Attachment manager for a support request that already exists. */
 function SupportAttachments({
@@ -63,18 +65,22 @@ function SupportAttachments({
 
   return (
     <View className="gap-3">
-      <Text className="text-sm leading-6 text-[#5f6772]">
+      <Text className="text-sm leading-6 text-muted-foreground">
         Add screenshots or documents so operators can reproduce the issue.
       </Text>
       <View className="flex-row flex-wrap gap-3">
-        <PrimaryButton
-          label="Attach document"
+        <Button
+          className="rounded-full"
           onPress={() => void attach(pickDocumentUpload)}
-        />
-        <PrimaryButton
-          label="Attach screenshot"
+        >
+          <Text>Attach document</Text>
+        </Button>
+        <Button
+          className="rounded-full"
           onPress={() => void attach(pickImageUpload)}
-        />
+        >
+          <Text>Attach screenshot</Text>
+        </Button>
       </View>
       <ErrorText message={attachError} />
       {inFlightUploads.map((upload) => (
@@ -125,52 +131,49 @@ function LiveSupport() {
   if (requestId !== null) {
     return (
       <>
-        <StatusPill label="Request received" tone="success" />
-        <Text className="text-base leading-7 text-[#5f6772]">
+        <StatusBadge label="Request received" tone="success" />
+        <Text className="text-base leading-7 text-muted-foreground">
           Thanks — your request is now with our operators and you will get an
           email acknowledgement. You can attach files below to add context.
         </Text>
         <SupportAttachments requestId={requestId} />
-        <PrimaryButton
-          label="Start another request"
+        <Button
+          className="rounded-full"
           onPress={() => {
             setRequestId(null);
             setSubject("");
             setBody("");
           }}
-        />
+        >
+          <Text>Start another request</Text>
+        </Button>
       </>
     );
   }
 
   return (
     <>
-      <Text className="text-base leading-7 text-[#5f6772]">
+      <Text className="text-base leading-7 text-muted-foreground">
         Describe the problem and we will route it to an operator. Attachments
         can be added right after the request is created.
       </Text>
-      <TextInput
-        className={inputClassName}
+      <Input
+        className="rounded-2xl"
         editable={!pending}
         onChangeText={setSubject}
         placeholder="Subject (e.g. Billing issue)"
-        placeholderTextColor="#7b838e"
         value={subject}
       />
-      <TextInput
-        className="min-h-[120px] rounded-[18px] border border-[#16202a]/10 bg-white px-4 py-3 text-base text-[#16202a]"
+      <Textarea
+        className="min-h-[120px] rounded-2xl bg-background"
         editable={!pending}
-        multiline
         onChangeText={setBody}
         placeholder="What happened? What did you expect?"
-        placeholderTextColor="#7b838e"
-        textAlignVertical="top"
         value={body}
       />
-      <PrimaryButton
-        label={pending ? "Submitting…" : "Submit support request"}
-        onPress={() => void submit()}
-      />
+      <Button className="rounded-full" onPress={() => void submit()}>
+        <Text>{pending ? "Submitting…" : "Submit support request"}</Text>
+      </Button>
       <ErrorText message={error} />
     </>
   );
@@ -179,12 +182,12 @@ function LiveSupport() {
 function OfflineSupport() {
   return (
     <>
-      <Text className="text-base leading-7 text-[#5f6772]">
+      <Text className="text-base leading-7 text-muted-foreground">
         Support requests become first-class Convex records with email
         acknowledgements and operator routing.
       </Text>
       <EmptyText message="Offline demo — connect a Convex deployment to submit a real request." />
-      <Text className="text-sm leading-6 text-[#5f6772]">
+      <Text className="text-sm leading-6 text-muted-foreground">
         You can always reach us directly at {productConfig.company.supportEmail}
         .
       </Text>
@@ -197,15 +200,25 @@ export default function SupportScreen() {
 
   return (
     <AppScreen>
-      <SectionCard eyebrow="Support" title="Get help from an operator">
-        {mode === "offline" ? (
-          <OfflineSupport />
-        ) : (
-          <ScreenBoundary>
-            <LiveSupport />
-          </ScreenBoundary>
-        )}
-      </SectionCard>
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Support
+          </Text>
+          <CardTitle className="text-[28px] leading-tight">
+            Get help from an operator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          {mode === "offline" ? (
+            <OfflineSupport />
+          ) : (
+            <ScreenBoundary>
+              <LiveSupport />
+            </ScreenBoundary>
+          )}
+        </CardContent>
+      </Card>
     </AppScreen>
   );
 }

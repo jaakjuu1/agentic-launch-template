@@ -1,5 +1,5 @@
-import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -13,9 +13,7 @@ const packageRoot = path.join(
 const stylesCss = readFileSync(path.join(packageRoot, "styles.css"), "utf8");
 
 const require = createRequire(import.meta.url);
-const preset = require(
-  path.join(packageRoot, "tailwind-preset.cjs"),
-) as {
+const preset = require(path.join(packageRoot, "tailwind-preset.cjs")) as {
   theme: { extend: { colors: Record<string, unknown> } };
 };
 
@@ -68,9 +66,10 @@ function hexDistance(a: string, b: string): number {
 function presetColor(key: string): string {
   const entry = preset.theme.extend.colors[key];
   const raw =
-    typeof entry === "string"
-      ? entry
-      : (entry as Record<string, string>).DEFAULT;
+    typeof entry === "string" ? entry : (entry as { DEFAULT?: string }).DEFAULT;
+  if (raw === undefined) {
+    throw new Error(`Preset color missing: ${key}`);
+  }
   return hslStringToHex(raw);
 }
 

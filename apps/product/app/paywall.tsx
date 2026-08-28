@@ -2,17 +2,20 @@ import { productConfig } from "@launch/config/product";
 import { api } from "@launch/convex/_generated/api";
 import {
   AppScreen,
-  PrimaryButton,
-  SectionCard,
-  StatusPill,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Text,
 } from "@launch/ui-native";
 import { useMutation, useQuery } from "convex/react";
 import { Link } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { ScreenBoundary } from "@/components/screen-boundary";
-import { EmptyText, ErrorText } from "@/components/status-blocks";
+import { EmptyText, ErrorText, StatusBadge } from "@/components/status-blocks";
 import { useAppMode } from "@/lib/app-mode";
 import { type EntitlementTier, resolveActiveTier } from "@/lib/entitlements";
 import { getErrorMessage } from "@/lib/errors";
@@ -29,33 +32,33 @@ function TierCard({
   const isCurrent = tier.tier === activeTier;
 
   return (
-    <View className="gap-3 rounded-[20px] bg-[#fff3eb] p-4">
+    <View className="gap-3 rounded-2xl bg-secondary/40 p-4">
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-lg font-semibold text-[#16202a]">
+        <Text className="text-lg font-semibold text-foreground">
           {tier.name}
         </Text>
-        <Text className="text-base font-semibold text-[#ff6b35]">
+        <Text className="text-base font-semibold text-primary">
           {tier.displayPrice}
         </Text>
       </View>
-      <Text className="text-base leading-7 text-[#5f6772]">
+      <Text className="text-base leading-7 text-muted-foreground">
         {tier.description}
       </Text>
       <View className="gap-1">
         {tier.features.map((feature) => (
-          <Text className="text-sm leading-6 text-[#16202a]" key={feature}>
+          <Text className="text-sm leading-6 text-foreground" key={feature}>
             · {feature}
           </Text>
         ))}
       </View>
-      {isCurrent ? <StatusPill label="Current plan" tone="success" /> : null}
+      {isCurrent ? <StatusBadge label="Current plan" tone="success" /> : null}
     </View>
   );
 }
 
 function BillingHonestyNote() {
   return (
-    <Text className="text-sm leading-6 text-[#7b838e]">
+    <Text className="text-sm leading-6 text-muted-foreground">
       Store billing is not wired in this template build: the RevenueCat SDK
       (mobile stores) and Stripe checkout (web) are connected at launch time per
       docs/ROADMAP.md. Entitlements below are read live from Convex.
@@ -104,12 +107,11 @@ function LivePaywall() {
       </View>
 
       <View className="gap-3">
-        <PrimaryButton
-          label={pending ? "Unlocking…" : "Unlock Pro (demo)"}
-          onPress={() => void unlock()}
-        />
+        <Button className="rounded-full" onPress={() => void unlock()}>
+          <Text>{pending ? "Unlocking…" : "Unlock Pro (demo)"}</Text>
+        </Button>
         {granted ? (
-          <Text className="text-sm leading-6 text-[#1b7f5b]">
+          <Text className="text-sm leading-6 text-success">
             Preview Pro entitlement granted.
           </Text>
         ) : null}
@@ -118,7 +120,7 @@ function LivePaywall() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-xs uppercase tracking-[1.6px] text-[#5f6772]">
+        <Text className="text-xs uppercase tracking-[1.6px] text-muted-foreground">
           Your entitlements
         </Text>
         {entitlements === undefined ? (
@@ -128,18 +130,18 @@ function LivePaywall() {
         ) : (
           entitlements.map((entitlement) => (
             <View
-              className="flex-row items-center justify-between rounded-[20px] bg-white/80 px-4 py-3"
+              className="flex-row items-center justify-between rounded-2xl bg-popover/80 px-4 py-3"
               key={entitlement._id}
             >
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-[#16202a]">
+                <Text className="text-sm font-semibold text-foreground">
                   {entitlement.productKey}
                 </Text>
-                <Text className="text-xs uppercase tracking-[1.2px] text-[#5f6772]">
+                <Text className="text-xs uppercase tracking-[1.2px] text-muted-foreground">
                   via {entitlement.source}
                 </Text>
               </View>
-              <StatusPill
+              <StatusBadge
                 label={entitlement.active ? entitlement.tier : "inactive"}
                 tone={entitlement.active ? "success" : "neutral"}
               />
@@ -174,20 +176,30 @@ export default function PaywallScreen() {
 
   return (
     <AppScreen>
-      <SectionCard eyebrow="Premium" title={`${productConfig.name} Pro`}>
-        {mode === "offline" ? (
-          <OfflinePaywall />
-        ) : (
-          <ScreenBoundary>
-            <LivePaywall />
-          </ScreenBoundary>
-        )}
-        <Link href="/settings">
-          <Text className="text-center text-sm font-medium text-[#16202a]">
-            Entitlement details and consents live in Settings
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Premium
           </Text>
-        </Link>
-      </SectionCard>
+          <CardTitle className="text-[28px] leading-tight">
+            {`${productConfig.name} Pro`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          {mode === "offline" ? (
+            <OfflinePaywall />
+          ) : (
+            <ScreenBoundary>
+              <LivePaywall />
+            </ScreenBoundary>
+          )}
+          <Link href="/settings">
+            <Text className="text-center text-sm font-medium text-foreground">
+              Entitlement details and consents live in Settings
+            </Text>
+          </Link>
+        </CardContent>
+      </Card>
     </AppScreen>
   );
 }

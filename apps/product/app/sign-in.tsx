@@ -4,10 +4,20 @@ import {
   useSignIn,
   useSignUp,
 } from "@clerk/clerk-expo";
-import { AppScreen, PrimaryButton, SectionCard } from "@launch/ui-native";
+import {
+  AppScreen,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Text,
+} from "@launch/ui-native";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { ErrorText } from "@/components/status-blocks";
 import { useAppMode } from "@/lib/app-mode";
@@ -28,9 +38,6 @@ function isUnknownIdentifier(error: unknown): boolean {
     error.errors.some((item) => item.code === "form_identifier_not_found")
   );
 }
-
-const inputClassName =
-  "rounded-[18px] border border-[#16202a]/10 bg-white px-4 py-3 text-base text-[#16202a]";
 
 /**
  * Single-screen Clerk email + verification-code flow. Tries sign-in
@@ -145,73 +152,88 @@ function ClerkSignIn() {
 
   return (
     <AppScreen>
-      <SectionCard eyebrow="Sign in" title="Continue with your email">
-        <Text className="text-base leading-7 text-[#5f6772]">
-          {step === "email"
-            ? "We will email you a one-time code. New addresses get an account automatically."
-            : `Enter the 6-digit code we sent to ${email.trim().toLowerCase()}.`}
-        </Text>
+      <Card className="gap-3 rounded-3xl py-5">
+        <CardHeader className="gap-3 px-5">
+          <Text className="text-xs uppercase tracking-[2px] text-muted-foreground">
+            Sign in
+          </Text>
+          <CardTitle className="text-[28px] leading-tight">
+            Continue with your email
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="gap-3 px-5">
+          <CardDescription className="text-base leading-7">
+            {step === "email"
+              ? "We will email you a one-time code. New addresses get an account automatically."
+              : `Enter the 6-digit code we sent to ${email.trim().toLowerCase()}.`}
+          </CardDescription>
 
-        {step === "email" ? (
-          <View className="gap-3">
-            <TextInput
-              autoCapitalize="none"
-              autoComplete="email"
-              className={inputClassName}
-              editable={!pending}
-              inputMode="email"
-              onChangeText={setEmail}
-              onSubmitEditing={() => void requestCode()}
-              placeholder="you@example.com"
-              placeholderTextColor="#7b838e"
-              value={email}
-            />
-            <PrimaryButton
-              label={
-                pending
-                  ? "Sending code…"
-                  : clerkReady
-                    ? "Email me a code"
-                    : "Loading sign-in…"
-              }
-              onPress={() => void requestCode()}
-            />
-          </View>
-        ) : (
-          <View className="gap-3">
-            <TextInput
-              autoCapitalize="none"
-              autoComplete="one-time-code"
-              className={inputClassName}
-              editable={!pending}
-              inputMode="numeric"
-              onChangeText={setCode}
-              onSubmitEditing={() => void verifyCode()}
-              placeholder="123456"
-              placeholderTextColor="#7b838e"
-              value={code}
-            />
-            <PrimaryButton
-              label={pending ? "Verifying…" : "Verify and continue"}
-              onPress={() => void verifyCode()}
-            />
-            <View className="flex-row justify-between">
-              <Pressable disabled={pending} onPress={() => setStep("email")}>
-                <Text className="text-sm font-semibold text-[#16202a]">
-                  Use a different email
+          {step === "email" ? (
+            <View className="gap-3">
+              <Input
+                autoCapitalize="none"
+                autoComplete="email"
+                className="rounded-2xl"
+                editable={!pending}
+                inputMode="email"
+                onChangeText={setEmail}
+                onSubmitEditing={() => void requestCode()}
+                placeholder="you@example.com"
+                value={email}
+              />
+              <Button
+                className="rounded-full"
+                onPress={() => void requestCode()}
+              >
+                <Text>
+                  {pending
+                    ? "Sending code…"
+                    : clerkReady
+                      ? "Email me a code"
+                      : "Loading sign-in…"}
                 </Text>
-              </Pressable>
-              <Pressable disabled={pending} onPress={() => void requestCode()}>
-                <Text className="text-sm font-semibold text-[#16202a]">
-                  Resend code
-                </Text>
-              </Pressable>
+              </Button>
             </View>
-          </View>
-        )}
+          ) : (
+            <View className="gap-3">
+              <Input
+                autoCapitalize="none"
+                autoComplete="one-time-code"
+                className="rounded-2xl"
+                editable={!pending}
+                inputMode="numeric"
+                onChangeText={setCode}
+                onSubmitEditing={() => void verifyCode()}
+                placeholder="123456"
+                value={code}
+              />
+              <Button
+                className="rounded-full"
+                onPress={() => void verifyCode()}
+              >
+                <Text>{pending ? "Verifying…" : "Verify and continue"}</Text>
+              </Button>
+              <View className="flex-row justify-between">
+                <Pressable disabled={pending} onPress={() => setStep("email")}>
+                  <Text className="text-sm font-semibold text-foreground">
+                    Use a different email
+                  </Text>
+                </Pressable>
+                <Pressable
+                  disabled={pending}
+                  onPress={() => void requestCode()}
+                >
+                  <Text className="text-sm font-semibold text-foreground">
+                    Resend code
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
 
-        <ErrorText message={error} />
-      </SectionCard>
+          <ErrorText message={error} />
+        </CardContent>
+      </Card>
     </AppScreen>
   );
 }

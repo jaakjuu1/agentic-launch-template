@@ -26,6 +26,7 @@
     "@launch/domain": "workspace:*",
     "@launch/ui-native": "workspace:*",
     "@react-native-async-storage/async-storage": "^3.0.1",
+    "@rn-primitives/portal": "^1.5.3",
     "bs58": "^6.0.0",
     "convex": "^1.45.0",
     "expo": "^55.0.6",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@types/react": "^19.2.14",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7"
   }
 }

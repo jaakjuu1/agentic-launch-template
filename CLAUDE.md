@@ -41,6 +41,15 @@ end-to-end in the apps, not when the Convex function exists.
      `apps/product/lib/use-live-enabled.ts`. When you change a screen,
      update its offline fixtures too so the zero-config demo stays
      honest. File uploads go through `apps/product/lib/use-file-upload.ts`.
+   - Expo UI is built from the shadcn-style kit in `@launch/ui-native`
+     (react-native-reusables vendored into
+     `packages/ui-native/src/components/ui/` — Button, Card, Badge,
+     Input, Dialog, ...). Style with SEMANTIC Tailwind classes
+     (`bg-background`, `text-muted-foreground`, `bg-primary`, ...) from
+     the shared preset — never raw hex classes. Non-className color
+     props import `colors` from `@launch/design-tokens`. Text inside
+     Button/Badge must be the kit's `Text` (variant styles flow through
+     `TextClassContext`).
    - Web marketing pages stay RSC-only; interactive surfaces follow the
      operator-console pattern (client component under
      `apps/web/components/convex-client-provider.tsx`). New operator API
@@ -126,7 +135,18 @@ schedule from a tool, a cron (`convex/crons.ts`), or a webhook.
 **Add an app screen (Expo):** file under `apps/product/app/` (Expo
 Router). Data via `useQuery(api...)` with the offline-mode skip pattern
 used by existing tabs; mutations/actions wrapped in try/catch with
-inline error text. Reuse `@launch/ui-native` + existing components.
+inline error text. Compose from `@launch/ui-native` components with
+semantic color classes.
+
+**Add a UI component:** copy it from react-native-reusables
+(https://reactnativereusables.com/, NativeWind variant — the repo's
+`packages/registry/src/nativewind/components/ui/`) into
+`packages/ui-native/src/components/ui/`, rewrite `@/registry/...`
+imports to relative ones, export it from
+`packages/ui-native/src/index.tsx`, and add any missing
+`@rn-primitives/*` dependency to `packages/ui-native/package.json`. New
+theme colors go into `packages/design-tokens` (palette + styles.css +
+tailwind-preset.cjs — the sync test enforces all three).
 
 **Add a package subpath export:** package.json `exports` + tsup entry +
 `tsconfig.base.json` and app tsconfig `paths` + `vitest.config.ts` alias

@@ -23,11 +23,14 @@ export const colors = {
   accent: "#ff6b35",
   accentSoft: "#ffd4c7",
   background: "#f5efe6",
+  border: "#e3dcd0",
   card: "#fffaf4",
+  danger: "#b3261e",
   ink: "#16202a",
   muted: "#5f6772",
   success: "#1b7f5b",
   surface: "#fffdf9",
+  surfaceMuted: "#ece4d8",
   warning: "#b85c00",
 } as const;
 

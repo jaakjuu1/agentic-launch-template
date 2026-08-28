@@ -40,6 +40,10 @@ commands, invariants, and extension recipes.
 - **Files done right**: presigned R2 uploads with quota enforcement
   (re-checked against real uploaded size), text extraction → chunking →
   embeddings, signed downloads, GDPR-grade deletion cascades.
+- **A real UI kit**: shadcn-style components for React Native
+  (react-native-reusables vendored into `packages/ui-native`, NativeWind
+  + Radix-on-web) themed by shared design tokens — restyle the whole
+  product from one palette.
 - **Ops**: role-gated operator console (support queue, failed workflows,
   storage activity), audit log, cron cleanup, weekly digest fan-out.
 - **Rails**: CI (lint, typecheck, tests, builds, Playwright e2e), EAS

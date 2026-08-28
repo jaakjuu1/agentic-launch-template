@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  presets: [require("nativewind/preset")],
+  // Semantic colors (bg-background, text-primary, ...) come from the
+  // shared design-token preset — keep screens on those classes instead
+  // of raw hex values.
+  presets: [
+    require("nativewind/preset"),
+    require("@launch/design-tokens/tailwind-preset"),
+  ],
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -10,5 +16,6 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  // Web-side enter/exit animations used by the dialog/overlay components.
+  plugins: [require("tailwindcss-animate")],
 };

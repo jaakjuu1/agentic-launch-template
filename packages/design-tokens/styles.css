@@ -2,11 +2,14 @@
   --launch-color-accent: #ff6b35;
   --launch-color-accent-soft: #ffd4c7;
   --launch-color-background: #f5efe6;
+  --launch-color-border: #e3dcd0;
   --launch-color-card: #fffaf4;
+  --launch-color-danger: #b3261e;
   --launch-color-ink: #16202a;
   --launch-color-muted: #5f6772;
   --launch-color-success: #1b7f5b;
   --launch-color-surface: #fffdf9;
+  --launch-color-surface-muted: #ece4d8;
   --launch-color-warning: #b85c00;
   --launch-radius-lg: 24px;
   --launch-radius-md: 18px;

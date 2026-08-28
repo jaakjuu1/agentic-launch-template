@@ -29,6 +29,8 @@ packages/      shared code                       config, domain, billing, auth,
 | File storage (R2) | public API `convex/storage.ts`; Node-only internals `convex/storageNode.ts`; helpers `packages/storage` |
 | Webhook signature verification | `convex/lib/webhooks.ts` (Svix + Stripe, Web Crypto) |
 | Operator console backend | `convex/operator.ts` (role-gated) |
+| Mobile UI kit | `packages/ui-native` — shadcn-style components vendored from react-native-reusables (NativeWind); works on iOS/Android and, via react-native-web, in the Expo web build |
+| Theme | `packages/design-tokens`: hex palette (TS + CSS vars for apps/web) + `tailwind-preset.cjs` mapping it to the kit's semantic colors; a sync test keeps all three aligned |
 
 ## Data flow: the assistant
 
@@ -82,6 +84,13 @@ account deletion cascades everything including R2 objects.
 
 - Strict TS everywhere (`noUncheckedIndexedAccess`); Biome for
   lint/format (`corepack pnpm format`).
+- Expo UI: compose screens from `@launch/ui-native` (the vendored
+  component kit) using semantic Tailwind classes (`bg-background`,
+  `text-primary`, ...) defined by the design-token preset. No raw hex in
+  screens; non-className color props read `colors` from
+  `@launch/design-tokens`. New components are vendored from
+  react-native-reusables (see CLAUDE.md → "Add a UI component"); dark
+  mode, when needed, follows the reusables CSS-variable theming pattern.
 - Convex: public functions take/return validated args; anything called
   by other functions is `internalQuery/Mutation/Action`. Node-only code
   (`"use node"`) stays in `storageNode.ts`-style files.

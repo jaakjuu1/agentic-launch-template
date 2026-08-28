@@ -9,6 +9,52 @@ execute it phase by phase; the product definition belongs in
 `docs/PRODUCT_SPEC.md`. Architecture and conventions: `docs/architecture.md`.
 Service setup: `docs/integrations.md`.**
 
+## Operating procedure: from spec to finished app
+
+The goal of this repo is a FINISHED product. You are expected to deliver
+both the backend and the frontends — a feature is done only when it works
+end-to-end in the apps, not when the Convex function exists.
+
+1. **Orient.** Read `docs/PRODUCT_SPEC.md`. If it still contains ✎
+   placeholders, get it filled in (ask the user, or draft answers from
+   their idea and confirm) BEFORE writing code — it defines the domain
+   model, the agent's job, and pricing. Then open `docs/ROADMAP.md`,
+   find the first unfinished phase, and treat its checklist as your work
+   queue. Run `corepack pnpm new-product` first if the repo still says
+   "Agentic Launch".
+2. **Replace the placeholder domain.** `goals` / `projects` /
+   `artifacts` (and the screens built on them) are a reference domain
+   meant to be renamed or replaced per the spec. The infrastructure
+   tables are NOT placeholders — keep `profiles`, `entitlements`,
+   `files`, `fileAttachments`, `fileChunks`, `notifications`,
+   `approvals`, `workflowRuns`, `toolRuns`, `auditEvents`.
+3. **Work in vertical slices.** For each feature: schema → viewer-scoped
+   Convex functions → agent tool/workflow when the agent drives it →
+   Expo screen (all three app modes, see below) → web surface if
+   relevant → tests. Run `corepack pnpm typecheck && corepack pnpm test`
+   after every slice, not just at the end.
+4. **Follow the frontend patterns already in place:**
+   - Expo screens branch on the app mode from
+     `apps/product/lib/app-mode.ts`: `"offline"` renders fixtures from
+     `apps/product/lib/reference-data.ts`; live modes use
+     `useQuery(api..., ...)` gated with the `"skip"` pattern in
+     `apps/product/lib/use-live-enabled.ts`. When you change a screen,
+     update its offline fixtures too so the zero-config demo stays
+     honest. File uploads go through `apps/product/lib/use-file-upload.ts`.
+   - Web marketing pages stay RSC-only; interactive surfaces follow the
+     operator-console pattern (client component under
+     `apps/web/components/convex-client-provider.tsx`). New operator API
+     functions must also be added to the typed facade in
+     `apps/web/lib/convex-generated-api.ts`.
+   - All user-visible product identity comes from
+     `packages/config/src/product.ts` — never hardcode it.
+5. **Definition of done** before reporting a task complete:
+   `corepack pnpm format && corepack pnpm typecheck && corepack pnpm test
+   && corepack pnpm build` all green, plus `corepack pnpm test:e2e` when
+   `apps/web` changed. A roadmap phase is done when its checklist items
+   are demonstrably true in the running app, and `docs/ROADMAP.md` has
+   its boxes checked.
+
 ## Commands
 
 ```bash
